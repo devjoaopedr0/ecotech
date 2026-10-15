@@ -9,7 +9,9 @@
 
 O EcoTech monitora a **umidade do solo** de plantas com sensores (ESP32) e controla a **irrigação**. O usuário cadastra as plantas, cada uma com uma faixa ideal de umidade. O sistema mostra as leituras em tempo real, gera gráficos e relatórios, e avisa quando uma planta sai da faixa. A irrigação pode ser ligada manualmente ou rodar no modo automático.
 
-## 2. Sistema legado (Python)
+## 2. Sistema legado (Python) — só como referência funcional
+
+> **Decisão (15/10/2026):** o sistema novo terá um **banco novo**, modelado do zero. Do legado aproveitamos só **a ideia de como cada funcionalidade funciona**: nada de schema, código ou dados é migrado, e os usuários vão criar conta de novo.
 
 ### Stack
 Flask + psycopg2 + PostgreSQL, com o front em HTML/CSS/JS puro servido pelo próprio Flask. Os gráficos são feitos em Canvas e os PDFs com jsPDF. A hospedagem é no Render.
@@ -26,6 +28,18 @@ Flask + psycopg2 + PostgreSQL, com o front em HTML/CSS/JS puro servido pelo pró
 | Relatórios | PDF (no front com jsPDF e em `app_postgres.py` com reportlab) e CSV |
 | Config | URL da API e intervalo de polling |
 
+### Como cada funcionalidade funciona (o que levamos para o sistema novo)
+1. **Conta:** a pessoa cria a conta e faz login. Cada usuário enxerga só as próprias plantas e sensores.
+2. **Catálogo de plantas:** existe uma base de referência de plantas comuns no Nordeste, cada uma com nome popular, nome científico e faixa ideal de umidade do solo. A busca aceita digitação parcial, com no mínimo 2 letras, e procura tanto no nome popular quanto no científico.
+3. **Cadastro de planta:** ao escolher uma planta do catálogo no autocomplete, o formulário já vem preenchido com o nome, a espécie e a faixa ideal. O usuário também pode preencher tudo à mão e escolher um ícone. A faixa precisa ter o mínimo menor que o máximo. Planta e sensor ficam vinculados.
+4. **Leitura do sensor:** o ESP32 lê a umidade periodicamente (a cada 10 s no legado) e envia o percentual (0–100%) para a API, que guarda o valor com data e hora.
+5. **Status da planta:** cada leitura é comparada com a faixa da planta. Abaixo do mínimo é **Baixo**, acima do máximo é **Alto**, e dentro da faixa é **Ideal**. O front novo acrescenta **Atenção**, para leituras nos 15% inferiores da faixa.
+6. **Monitor:** o usuário escolhe uma planta e vê a umidade atual, um banner com o status, o gráfico com a faixa ideal desenhada por cima e a tabela de leituras. Os dados se atualizam sozinhos, com um intervalo configurável.
+7. **Dashboard:** mostra as estatísticas do período: valor atual, média, máxima, mínima, amplitude (máx − mín) e tendência (se a umidade está subindo ou caindo).
+8. **Relatórios:** exportam as leituras para PDF (cabeçalho, data de geração, total de registros e tabela) ou CSV.
+9. **Irrigação** (novo, não existia no legado): pode ser ligada e desligada manualmente, ou ficar no modo automático, em que liga sozinha quando a umidade cai abaixo do mínimo e desliga quando volta à faixa.
+10. **Alertas** (estavam planejados no legado): avisar no sistema e por e-mail quando uma planta sair da faixa.
+
 ### Endpoints (`main.py`)
 ```
 POST /api/auth/register | POST /api/auth/login | GET /api/auth/usuario/<id>
@@ -36,12 +50,14 @@ GET /receber?umidade= | GET /dados | GET /ultima
 O `app_postgres.py` é uma segunda versão, que nunca foi integrada ao `main.py`. Ela adiciona `POST /leitura`, `GET|POST /sensores`, `GET /exportar/pdf`, `GET /exportar/csv` e filtro por `sensor_id`.
 
 ### Problemas que **não** devem ser levados para o sistema novo
-1. **Senhas em texto puro** no banco. Além disso, há **credenciais do banco fixas no código**, no `app_postgres.py` de um repositório público. Essa senha precisa ser trocada.
+1. **Senhas em texto puro** no banco. Além disso, há **credenciais do banco fixas no código**, no `app_postgres.py` de um repositório público. O banco novo já resolve isso para o sistema novo, mas o banco antigo continua exposto enquanto existir e deve ser desativado ou ter a senha trocada.
 2. **Não há autenticação real na API**: as rotas recebem `usuario_id` na URL, então qualquer pessoa consegue ler ou alterar as plantas de qualquer usuário.
 3. **As leituras ficam num CSV local** (`umidade.csv`) no `main.py`, e esse arquivo se perde a cada deploy no Render. As leituras também não estão ligadas a sensor, planta nem usuário.
 4. **Existem dois modelos de dados que não batem entre si**:
-   - `data-base/db.sql`: UUID, com `usuarios`, `sensores`, `plantas` e `leituras`. **Este é o modelo certo.**
+   - `data-base/db.sql`: UUID, com `usuarios`, `sensores`, `plantas` e `leituras`.
    - `tabelausuarios.py`: SERIAL, com `usuarios(username)` e `usuarios_plantas`. É o modelo que roda em produção.
+
+   Nenhum dos dois será usado: o banco novo é modelado do zero (ver a seção 5.1).
 5. **O sensor não se autentica**: qualquer pessoa consegue enviar leituras com `GET /receber`.
 6. **Não existe controle de irrigação**: o sistema só lê o sensor e não aciona nada.
 
@@ -80,10 +96,10 @@ O `app_postgres.py` é uma segunda versão, que nunca foi integrada ao `main.py`
 
 ### 5.1 Backend (`app/backend`) — NestJS + Prisma
 - [ ] **Scaffold**, copiando da LUMINA: `config/` (validação de env), `database/` (PrismaService com adapter-pg), `common/` (filtro de exceções, `@CurrentUser`, rate-limit), Swagger e o `docker-compose.yml` do Postgres.
-- [ ] **Schema Prisma**, partindo do `db.sql` (UUID):
+- [ ] **Schema Prisma novo**, modelado a partir das funcionalidades da seção 2, sem reaproveitar as tabelas do legado. Proposta inicial:
   - `User` (nome, email único, `passwordHash`, papel)
   - `Plant` (userId, nome, espécie, emoji, local, `humidityMin`, `humidityMax`, `catalogPlantId?`)
-  - `PlantCatalog` (as ~300 plantas, carregadas por **seed** a partir do `plantas.py`)
+  - `PlantCatalog` (catálogo de referência, carregado por **seed** próprio. A lista do `plantas.py` pode servir de ponto de partida, mas tem duplicatas, como Girassol, Coentro e Sálvia, e as faixas precisam ser revisadas)
   - `Device` / sensor (userId, nome, MAC, local, ativo, **hash do token do dispositivo**, plantId)
   - `Reading` (deviceId, plantId, umidade `Decimal(5,2)`, `createdAt`, com índice `(plantId, createdAt)`)
   - `IrrigationEvent` (plantId, início, fim, origem: `manual | auto`)
@@ -99,7 +115,7 @@ O `app_postgres.py` é uma segunda versão, que nunca foi integrada ao `main.py`
 - [ ] **Alertas**: gerados quando a leitura sai da faixa, com `GET /alerts` e marcação de lido. O e-mail pode reaproveitar o `mailer` da LUMINA.
 - [ ] **Relatórios**: exportação em CSV e PDF.
 - [ ] **Tempo real** (opcional nesta fase): SSE ou WebSocket para as leituras novas; começar com polling.
-- [ ] **Migração de dados** do Render legado, se quiserem manter os usuários e plantas atuais. Como as senhas estão em texto puro, o caminho mais limpo é forçar os usuários a redefinirem a senha.
+- ~~Migração de dados do legado~~: não será feita. O banco é novo e os usuários criam conta de novo.
 
 ### 5.2 Frontend (`app/frontend`)
 - [ ] Criar um **cliente HTTP** (`lib/api.ts`) com o token JWT e o refresh, no padrão do `api-client-core.ts` da LUMINA.
