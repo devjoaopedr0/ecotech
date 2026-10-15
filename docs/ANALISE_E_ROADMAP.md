@@ -69,7 +69,7 @@ O `app_postgres.py` é uma segunda versão, que nunca foi integrada ao `main.py`
 
 | Camada | LUMINA | EcoTech hoje | Decisão |
 |---|---|---|---|
-| Front | React 19 + Vite + TS + **Tailwind 4** + cva + lucide-react | React 19 + Vite + TS + **CSS puro** + Recharts | ⚠️ Decidir: migrar para Tailwind (padrão LUMINA) ou manter o CSS do Marcos. Recharts continua nos dois casos |
+| Front | React 19 + Vite + TS + **Tailwind 4** + cva + lucide-react | React 19 + Vite + TS + **CSS puro** + Recharts | ✅ **Manter CSS puro** (decidido em 14/10/2026); Recharts para gráficos |
 | Back | **NestJS 11** + **Prisma 7** (`@prisma/adapter-pg`) + PostgreSQL | — (vazio) | Seguir a LUMINA |
 | Auth | JWT (access + refresh), bcrypt, Passport, Google OAuth | simulada | Seguir a LUMINA (Google é opcional) |
 | Docs API | Swagger em `/docs` | — | Seguir a LUMINA |
@@ -102,7 +102,6 @@ O `app_postgres.py` é uma segunda versão, que nunca foi integrada ao `main.py`
 - [ ] **Migração de dados** do Render legado, se quiserem manter os usuários e plantas atuais. Como as senhas estão em texto puro, o caminho mais limpo é forçar os usuários a redefinirem a senha.
 
 ### 5.2 Frontend (`app/frontend`)
-- [ ] Decidir entre Tailwind e CSS puro (ver a seção 4).
 - [ ] Criar um **cliente HTTP** (`lib/api.ts`) com o token JWT e o refresh, no padrão do `api-client-core.ts` da LUMINA.
 - [ ] Trocar o `AuthContext` simulado pelo login real e adicionar as telas de **cadastro** e **esqueci a senha**.
 - [ ] Trocar o `mockData.ts` e o `PlantsContext` por chamadas à API. Avaliar o uso do TanStack Query para cache e polling.
