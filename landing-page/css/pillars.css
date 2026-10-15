@@ -1,0 +1,89 @@
+/* ═══════════════════════════════════════
+   PILLARS — Três Pilares
+   ═══════════════════════════════════════ */
+.pillars {
+  background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-card) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.pillars__header { text-align: center; max-width: 620px; margin-inline: auto; margin-bottom: 64px; }
+.pillars__header .section-desc { margin-inline: auto; margin-top: 16px; }
+
+.pillars__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.pillar-card {
+  position: relative;
+  background: var(--gradient-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 40px 32px;
+  text-align: left;
+  overflow: hidden;
+  transition: border-color var(--dur), transform var(--dur), box-shadow var(--dur);
+}
+
+.pillar-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity var(--dur);
+  background: radial-gradient(ellipse at 50% 0%, rgba(34,197,94,0.08), transparent 70%);
+}
+
+.pillar-card:hover {
+  border-color: var(--border-green);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-green);
+}
+
+.pillar-card:hover::after { opacity: 1; }
+
+.pillar-card__num {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--green-500);
+  margin-bottom: 20px;
+}
+
+.pillar-card__icon {
+  width: 56px; height: 56px;
+  background: rgba(34,197,94,0.1);
+  border: 1px solid var(--border-green);
+  border-radius: var(--radius-md);
+  display: grid;
+  place-items: center;
+  font-size: 1.6rem;
+  margin-bottom: 20px;
+  transition: background var(--dur), box-shadow var(--dur);
+}
+
+.pillar-card:hover .pillar-card__icon {
+  background: rgba(34,197,94,0.18);
+  box-shadow: 0 0 20px rgba(34,197,94,0.2);
+}
+
+.pillar-card__title { font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; }
+.pillar-card__desc  { font-size: .9rem; color: var(--text-secondary); line-height: 1.7; }
+
+.pillar-card--highlight {
+  border-color: var(--border-green);
+  background: linear-gradient(145deg, #0f1923, #112210);
+}
+
+.pillar-card--highlight .pillar-card__icon { background: rgba(34,197,94,0.15); }
+
+@media (max-width: 900px) { .pillars__grid { grid-template-columns: 1fr; gap: 16px; } }
+
+@media (min-width: 481px) and (max-width: 900px) {
+  .pillars__grid { grid-template-columns: repeat(2, 1fr); }
+  .pillar-card:last-child { grid-column: span 2; max-width: 420px; margin-inline: auto; width: 100%; }
+}

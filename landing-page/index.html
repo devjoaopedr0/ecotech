@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Ecotech — Sistema Inteligente de Irrigação para Hortas Domésticas. ESP32, React, JavaScript e MQTT para monitoramento e automação sustentável." />
+  <meta name="keywords" content="irrigação inteligente, horta automatizada, ESP32, React, JavaScript, MQTT, IoT, sustentabilidade, automação" />
+  <meta name="theme-color" content="#22c55e" />
+
+  <meta property="og:title" content="Ecotech — Irrigação Inteligente" />
+  <meta property="og:description" content="Sistema inteligente de irrigação com ESP32, painel em React e JavaScript e comunicação MQTT para acompanhar sua horta em tempo real." />
+  <meta property="og:type" content="website" />
+
+  <title>Ecotech — Sistema Inteligente de Irrigação</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="icon" href="imgs/WhatsApp Image 2026-09-06 at 12.15.58.jpeg" type="image/jpeg" />
+  <link rel="apple-touch-icon" href="imgs/WhatsApp Image 2026-09-06 at 12.15.58.jpeg" />
+
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/header.css" />
+  <link rel="stylesheet" href="css/hero.css" />
+  <link rel="stylesheet" href="css/pillars.css" />
+  <link rel="stylesheet" href="css/objectives.css" />
+  <link rel="stylesheet" href="css/how-it-works.css" />
+  <link rel="stylesheet" href="css/impact.css" />
+  <link rel="stylesheet" href="css/cta.css" />
+  <link rel="stylesheet" href="css/footer.css" />
+</head>
+
+<body>
+  <a href="#main-content" class="skip-link">Pular para o conteúdo</a>
+
+  <!-- ════════════════════════════════════
+       HEADER
+       ════════════════════════════════════ -->
+  <header class="header" role="banner">
+    <div class="container">
+      <div class="header__inner">
+
+        <a href="#hero" class="header__logo" aria-label="Ecotech — Página inicial">
+          <img src="imgs/WhatsApp Image 2026-09-06 at 12.15.58.jpeg" alt="Ecotech" class="header__logo-img" />
+          <span class="header__logo-name">Eco<span class="header__logo-name_two">Tech</span></span>
+        </a>
+
+        <nav class="header__nav" id="primary-navigation" aria-label="Navegação principal">
+          <a href="#about">Nossa Missão</a>
+          <a href="#solutions">Soluções</a>
+          <a href="#how">Como Funciona</a>
+          <a href="#impact">Impacto</a>
+          <a href="#contact">Contato</a>
+        </nav>
+
+        <a href="https://wa.me/5585986557364" class="header__cta" id="fale-conosco" target="_blank" rel="noopener">
+          Fale conosco →
+        </a>
+
+        <button class="header__burger" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="primary-navigation">
+          <span></span><span></span><span></span>
+        </button>
+
+      </div>
+    </div>
+  </header>
+
+
+  <main id="main-content" tabindex="-1">
+
+    <!-- ════════════════════════════════════
+         HERO
+         ════════════════════════════════════ -->
+    <section id="hero" class="hero" aria-labelledby="hero-title">
+
+      <div class="bg-glow hero__glow-1" aria-hidden="true"></div>
+      <div class="bg-glow hero__glow-2" aria-hidden="true"></div>
+
+      <div class="container">
+        <div class="hero__inner">
+
+          <div class="hero__content">
+            <div class="hero__badge">
+              <span class="hero__badge-dot" aria-hidden="true"></span>
+              Irrigação com Inteligência
+            </div>
+
+            <h1 id="hero-title" class="hero__title">
+              <span class="hero__title-line">Sua horta,</span>
+              <span class="hero__title-line hero__title-green">sempre irrigada.</span>
+              <span class="hero__title-line">Sem esforço.</span>
+            </h1>
+
+            <p class="hero__subtitle">
+              O <strong>Ecotech</strong> conecta sensores de solo ao seu celular — monitorando
+              umidade e temperatura em tempo real e acionando a irrigação automaticamente,
+              onde quer que você esteja.
+            </p>
+
+            <div class="hero__actions">
+              <a href="#how" class="btn btn-primary">Ver como funciona</a>
+              <a href="#contact" class="btn btn-outline">Falar com a gente</a>
+            </div>
+
+            <ul class="hero__tags" aria-label="Palavras-chave">
+              <li class="hero__tag">Automação</li>
+              <li class="hero__tag">IoT</li>
+              <li class="hero__tag">ESP32</li>
+              <li class="hero__tag">Sustentabilidade</li>
+              <li class="hero__tag">Horta Doméstica</li>
+            </ul>
+          </div>
+
+          <!-- Dashboard simulado -->
+          <div class="hero__visual" aria-hidden="true">
+            <div class="hero__card">
+              <div class="hero__card-title">Monitor em tempo real</div>
+
+              <div class="hero__gauge-wrap">
+                <div class="hero__gauge">
+                  <svg viewBox="0 0 100 100" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#4ade80" />
+                        <stop offset="100%" stop-color="#15803d" />
+                      </linearGradient>
+                    </defs>
+                    <circle class="hero__gauge-track" cx="50" cy="50" r="40" />
+                    <circle class="hero__gauge-fill"  cx="50" cy="50" r="40" />
+                  </svg>
+                  <div class="hero__gauge-text">
+                    <span class="hero__gauge-value">70%</span>
+                    <span class="hero__gauge-label">Umidade</span>
+                  </div>
+                </div>
+
+                <div class="hero__gauge-info">
+                  <div class="hero__gauge-stat">
+                    <div class="hero__gauge-stat-label">Temperatura</div>
+                    <div class="hero__gauge-stat-value">24 °C</div>
+                  </div>
+                  <div class="hero__gauge-stat">
+                    <div class="hero__gauge-stat-label">Status da planta</div>
+                    <div class="hero__gauge-stat-value ok">Ideal ✓</div>
+                  </div>
+                  <div class="hero__gauge-stat">
+                    <div class="hero__gauge-stat-label">Próxima irrigação</div>
+                    <div class="hero__gauge-stat-value">Automática</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="hero__bars" role="img" aria-label="Histórico de umidade">
+                <div class="hero__bar"></div>
+                <div class="hero__bar"></div>
+                <div class="hero__bar"></div>
+                <div class="hero__bar"></div>
+                <div class="hero__bar"></div>
+                <div class="hero__bar"></div>
+                <div class="hero__bar"></div>
+                <div class="hero__bar"></div>
+                <div class="hero__bar"></div>
+                <div class="hero__bar"></div>
+              </div>
+
+              <div class="hero__status-row">
+                <div class="hero__status">
+                  <span class="hero__status-dot green"></span>ESP32 Online
+                </div>
+                <div class="hero__status">
+                  <span class="hero__status-dot green"></span>Wi-Fi Ativo
+                </div>
+                <div class="hero__status">
+                  <span class="hero__status-dot gold"></span>Modo Auto
+                </div>
+              </div>
+            </div>
+
+            <div class="hero__float-badge">
+              <span class="hero__float-icon">💧</span>
+              <div class="hero__float-text">
+                <strong>Irrigação acionada</strong>
+                <span>Sensor detectou umidade baixa</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ════════════════════════════════════
+         NOSSA MISSÃO — Três Pilares
+         ════════════════════════════════════ -->
+    <section id="about" class="pillars" aria-labelledby="pillars-title">
+      <div class="container">
+
+        <header class="pillars__header reveal">
+          <p class="section-label">Nossa Missão</p>
+          <h2 id="pillars-title" class="section-title">
+            Três razões para <span>escolher o Ecotech</span>
+          </h2>
+          <p class="section-desc" style="margin-top:16px;margin-inline:auto">
+            Unimos tecnologia acessível, responsabilidade ambiental e praticidade real —
+            para que qualquer pessoa possa ter uma horta saudável sem depender da rotina.
+          </p>
+        </header>
+
+        <ul class="pillars__grid" aria-label="Pilares do Ecotech">
+          <li class="pillar-card reveal reveal-delay-1">
+            <div class="pillar-card__num">01</div>
+            <div class="pillar-card__icon" aria-hidden="true">💡</div>
+            <h3 class="pillar-card__title">Tecnologia ao alcance de todos</h3>
+            <p class="pillar-card__desc">
+              Componentes de baixo custo como o ESP32 tornam a automação residencial
+              possível para qualquer pessoa — sem abrir mão de precisão e robustez.
+            </p>
+          </li>
+
+          <li class="pillar-card pillar-card--highlight reveal reveal-delay-2">
+            <div class="pillar-card__num">02</div>
+            <div class="pillar-card__icon" aria-hidden="true">🌍</div>
+            <h3 class="pillar-card__title">Respeito ao planeta</h3>
+            <p class="pillar-card__desc">
+              O sistema só irriga quando o solo realmente precisa. Sensores em tempo
+              real evitam desperdício hídrico e contribuem para um cultivo consciente.
+            </p>
+          </li>
+
+          <li class="pillar-card reveal reveal-delay-3">
+            <div class="pillar-card__num">03</div>
+            <div class="pillar-card__icon" aria-hidden="true">📱</div>
+            <h3 class="pillar-card__title">Liberdade para você</h3>
+            <p class="pillar-card__desc">
+              Monitore e controle sua horta de qualquer lugar pelo celular. Mesmo
+              viajando ou com a agenda cheia, suas plantas ficam em boas mãos.
+            </p>
+          </li>
+        </ul>
+
+      </div>
+    </section>
+
+
+    <!-- ════════════════════════════════════
+         SOLUÇÕES — 6 Funcionalidades
+         ════════════════════════════════════ -->
+    <section id="solutions" class="objectives" aria-labelledby="objectives-title">
+      <div class="container">
+        <div class="objectives__inner">
+
+          <div class="objectives__left reveal">
+            <p class="section-label">O que entregamos</p>
+            <h2 id="objectives-title" class="section-title">
+              Tudo que sua <span>horta precisa</span>
+            </h2>
+            <div class="divider"></div>
+            <p class="section-desc">
+              Seis funcionalidades pensadas para você ter menos trabalho,
+              menos desperdício e mais colheita.
+            </p>
+            <div class="objectives__highlight">
+              <p>
+                "Irrigar apenas quando necessário, monitorar de onde estiver e nunca
+                mais perder uma planta por esquecimento — isso é o Ecotech."
+              </p>
+            </div>
+          </div>
+
+          <ol class="objectives__list" aria-label="Funcionalidades do Ecotech">
+
+            <li class="obj-item reveal reveal-delay-1">
+              <div class="obj-item__num" aria-label="01">01</div>
+              <div class="obj-item__body">
+                <h3 class="obj-item__title">Irrigação 100% automática</h3>
+                <p class="obj-item__desc">
+                  O sistema decide a hora certa de irrigar com base nos dados do sensor —
+                  sem você precisar fazer nada.
+                </p>
+              </div>
+            </li>
+
+            <li class="obj-item reveal reveal-delay-2">
+              <div class="obj-item__num" aria-label="02">02</div>
+              <div class="obj-item__body">
+                <h3 class="obj-item__title">Monitoramento em tempo real</h3>
+                <p class="obj-item__desc">
+                  Acompanhe umidade do solo e temperatura do ambiente ao vivo,
+                  diretamente no painel online.
+                </p>
+              </div>
+            </li>
+
+            <li class="obj-item reveal reveal-delay-3">
+              <div class="obj-item__num" aria-label="03">03</div>
+              <div class="obj-item__body">
+                <h3 class="obj-item__title">Controle remoto pelo celular</h3>
+                <p class="obj-item__desc">
+                  Acione a irrigação manualmente quando quiser, de onde estiver —
+                  basta ter acesso à internet.
+                </p>
+              </div>
+            </li>
+
+            <li class="obj-item reveal reveal-delay-4">
+              <div class="obj-item__num" aria-label="04">04</div>
+              <div class="obj-item__body">
+                <h3 class="obj-item__title">Agendamentos personalizados</h3>
+                <p class="obj-item__desc">
+                  Programe horários e ciclos de rega para cada planta — respeitando
+                  as necessidades específicas de cada espécie.
+                </p>
+              </div>
+            </li>
+
+            <li class="obj-item reveal reveal-delay-5">
+              <div class="obj-item__num" aria-label="05">05</div>
+              <div class="obj-item__body">
+                <h3 class="obj-item__title">Economia real de água</h3>
+                <p class="obj-item__desc">
+                  Só irriga quando o solo está seco de verdade. Chega de desperdiçar
+                  água com sistemas temporizados sem inteligência.
+                </p>
+              </div>
+            </li>
+
+            <li class="obj-item reveal reveal-delay-6">
+              <div class="obj-item__num" aria-label="06">06</div>
+              <div class="obj-item__body">
+                <h3 class="obj-item__title">Cuide mesmo estando longe</h3>
+                <p class="obj-item__desc">
+                  Viagem, trabalho, correria — sua horta continua sendo cuidada.
+                  A Ecotech garante continuidade sem depender da sua presença.
+                </p>
+              </div>
+            </li>
+
+          </ol>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ════════════════════════════════════
+         COMO FUNCIONA
+         ════════════════════════════════════ -->
+    <section id="how" class="how" aria-labelledby="how-title">
+
+      <div class="bg-glow how__glow" aria-hidden="true"></div>
+
+      <div class="container">
+
+        <header class="how__header reveal">
+          <p class="section-label">Na prática</p>
+          <h2 id="how-title" class="section-title">
+            Do sensor até você, <span>em tempo real</span>
+          </h2>
+          <p class="section-desc">
+            ESP32, comunicação MQTT e painel em React com JavaScript —
+            funcionando juntos para que sua horta nunca fique sem atenção.
+          </p>
+        </header>
+
+        <ol class="how__grid" aria-label="Camadas do sistema Ecotech">
+
+          <li class="how-step reveal reveal-delay-1">
+            <div class="how-step__icon" aria-hidden="true">
+              🔌
+              <span class="how-step__num">1</span>
+            </div>
+            <h3 class="how-step__title">Hardware & Sensores</h3>
+            <p class="how-step__desc">
+              O ESP32 lê os sensores de umidade e temperatura do solo em tempo real,
+              controlando o relé que aciona a bomba d'água diretamente.
+            </p>
+          </li>
+
+          <li class="how-step reveal reveal-delay-2">
+            <div class="how-step__icon" aria-hidden="true">
+              ⚙️
+              <span class="how-step__num">2</span>
+            </div>
+            <h3 class="how-step__title">Automação & MQTT</h3>
+            <p class="how-step__desc">
+              O firmware decide quando irrigar com base nos sensores. O protocolo MQTT
+              conecta o dispositivo à plataforma para trocar leituras e comandos.
+            </p>
+          </li>
+
+          <li class="how-step reveal reveal-delay-3">
+            <div class="how-step__icon" aria-hidden="true">
+              🌐
+              <span class="how-step__num">3</span>
+            </div>
+            <h3 class="how-step__title">Painel em React</h3>
+            <p class="how-step__desc">
+              Desenvolvido em React com JavaScript, o painel reúne gráficos, histórico,
+              configurações e acionamento manual para acompanhar sua horta em tempo real.
+            </p>
+          </li>
+
+        </ol>
+
+        <div class="how__modes">
+
+          <article class="how__mode reveal reveal-delay-1">
+            <div class="how__mode-badge">
+              <span aria-hidden="true">🤖</span> Modo Automático
+            </div>
+            <h3 class="how__mode-title">O sistema trabalha por você</h3>
+            <p class="how__mode-desc">
+              Quando a umidade cai abaixo do limite que você configurou, o Ecotech
+              aciona a irrigação sozinho — sem alarmes, sem lembretes, sem preocupação.
+            </p>
+          </article>
+
+          <article class="how__mode reveal reveal-delay-2">
+            <div class="how__mode-badge">
+              <span aria-hidden="true">👆</span> Modo Manual
+            </div>
+            <h3 class="how__mode-title">Você decide quando quiser</h3>
+            <p class="how__mode-desc">
+              Com um toque no painel online, você aciona a irrigação na hora que
+              preferir — de qualquer lugar, a qualquer momento, com total controle.
+            </p>
+          </article>
+
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ════════════════════════════════════
+         IMPACTO
+         ════════════════════════════════════ -->
+    <section id="impact" class="impact" aria-labelledby="impact-title">
+
+      <div class="bg-glow impact__glow" aria-hidden="true"></div>
+
+      <div class="container">
+
+        <header class="impact__header reveal">
+          <p class="section-label">Por que isso importa</p>
+          <h2 id="impact-title" class="section-title">
+            Mais verde, <span>menos desperdício</span>
+          </h2>
+          <p class="section-desc">
+            O Ecotech vai além da tecnologia — é uma escolha por um cultivo mais
+            consciente, acessível e sustentável dentro de casa.
+          </p>
+        </header>
+
+        <ul class="impact__grid" aria-label="Impactos do Ecotech">
+
+          <li class="impact-card reveal reveal-delay-1">
+            <div class="impact-card__accent" aria-hidden="true"></div>
+            <div class="impact-card__icon" aria-hidden="true">💻</div>
+            <p class="impact-card__title">Tecnologia democratizada</p>
+            <p class="impact-card__text">
+              Componentes acessíveis e código aberto aproximam a automação industrial
+              do dia a dia de qualquer pessoa com uma horta em casa.
+            </p>
+          </li>
+
+          <li class="impact-card reveal reveal-delay-2">
+            <div class="impact-card__accent" aria-hidden="true"></div>
+            <div class="impact-card__icon" aria-hidden="true">🌿</div>
+            <p class="impact-card__title">Uso racional da água</p>
+            <p class="impact-card__text">
+              Irrigação baseada em dados reais elimina o desperdício hídrico típico
+              de sistemas manuais ou temporizados sem inteligência adaptativa.
+            </p>
+          </li>
+
+          <li class="impact-card reveal reveal-delay-3">
+            <div class="impact-card__accent" aria-hidden="true"></div>
+            <div class="impact-card__icon" aria-hidden="true">🤝</div>
+            <p class="impact-card__title">Cultivo para todos</p>
+            <p class="impact-card__text">
+              Pessoas com rotinas intensas, mobilidade reduzida ou que viajam muito
+              agora podem cultivar alimentos em casa com o mesmo cuidado de quem
+              está presente.
+            </p>
+          </li>
+
+          <li class="impact-card reveal reveal-delay-4">
+            <div class="impact-card__accent" aria-hidden="true"></div>
+            <div class="impact-card__icon" aria-hidden="true">🎓</div>
+            <p class="impact-card__title">Aprendizado que transforma</p>
+            <p class="impact-card__text">
+              Eletrônica, programação, IoT e sustentabilidade em um projeto concreto
+              — referência para escolas técnicas e iniciativas de extensão universitária.
+            </p>
+          </li>
+
+        </ul>
+
+        <aside class="impact__banner reveal" aria-label="Resultado esperado">
+          <div class="impact__banner-text">
+            <p>
+              O Ecotech deve reduzir significativamente o <strong>desperdício hídrico</strong>,
+              trazer <strong>conforto e autonomia</strong> ao usuário e demonstrar que
+              <strong>tecnologia sustentável</strong> pode começar em casa — contribuindo para
+              a construção de lares mais inteligentes e responsáveis.
+            </p>
+          </div>
+          <div class="impact__banner-stat">
+            <div class="impact__banner-stat-num">
+              <span data-counter data-target="40" data-suffix="%">40%</span>
+            </div>
+            <div class="impact__banner-stat-label">redução estimada no<br>desperdício de água</div>
+          </div>
+        </aside>
+
+      </div>
+    </section>
+
+
+    <!-- ════════════════════════════════════
+         CTA + CONTATO
+         ════════════════════════════════════ -->
+    <section id="contact" class="cta" aria-labelledby="cta-title">
+
+      <div class="bg-glow cta__glow-1" aria-hidden="true"></div>
+
+      <div class="container">
+        <div class="cta__inner reveal">
+
+          <p class="section-label" style="justify-content:center">Experimente agora</p>
+          <h2 id="cta-title" class="cta__title">
+            Sua horta merece<br>cuidado <span>inteligente</span>
+          </h2>
+          <p class="cta__desc">
+            Acesse o painel do Ecotech, acompanhe os dados em tempo real e veja
+            como a automação pode transformar o cultivo doméstico de verdade.
+          </p>
+
+          <div class="cta__actions">
+            <a href="https://wa.me/5585986557364" class="btn btn-primary" id="fale-conosco-contato" target="_blank" rel="noopener">
+              Fale conosco
+            </a>
+            <a href="#about" class="btn btn-outline">
+              Saiba mais
+            </a>
+          </div>
+
+          <!-- Contato pontual na seção CTA -->
+          <div class="cta__contact">
+            <span class="cta__contact-label">Dúvidas? Fale com a gente</span>
+            <a href="mailto:ecotechsolutions.startup@gmail.com" class="cta__contact-email">
+              ✉ ecotechsolutions.startup@gmail.com
+            </a>
+          </div>
+
+          <div class="cta__tech">
+            <span class="cta__tech-label">Tecnologias utilizadas</span>
+            <ul class="cta__tech-row" aria-label="Stack do projeto">
+              <li><span class="cta__tech-pill">ESP32</span></li>
+              <li><span class="cta__tech-pill">React</span></li>
+              <li><span class="cta__tech-pill">JavaScript</span></li>
+              <li><span class="cta__tech-pill">MQTT</span></li>
+              <li><span class="cta__tech-pill">HTML5</span></li>
+              <li><span class="cta__tech-pill">CSS3</span></li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+
+  <!-- ════════════════════════════════════
+       FOOTER
+       ════════════════════════════════════ -->
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+
+      <div class="footer__inner">
+
+        <!-- Marca -->
+        <div>
+          <a href="#hero" class="footer__brand-logo" aria-label="Ecotech">
+            <div class="footer__brand-logo-icon" aria-hidden="true">🌱</div>
+            <span class="footer__brand-logo-text">Eco<span>tech</span></span>
+          </a>
+          <p class="footer__brand-desc">
+            Sistema Inteligente de Irrigação para Hortas Domésticas — automação
+            sustentável com ESP32, sensores e plataforma online.
+          </p>
+          <ul class="footer__keywords" aria-label="Palavras-chave">
+            <li class="footer__kw">Automação</li>
+            <li class="footer__kw">Irrigação Inteligente</li>
+            <li class="footer__kw">Horta Automatizada</li>
+          </ul>
+        </div>
+
+        <!-- Navegação -->
+        <nav aria-label="Links rápidos">
+          <p class="footer__col-title">Navegação</p>
+          <ul class="footer__col-links">
+            <li><a href="#about">Nossa Missão</a></li>
+            <li><a href="#solutions">Soluções</a></li>
+            <li><a href="#how">Como Funciona</a></li>
+            <li><a href="#impact">Impacto</a></li>
+          </ul>
+        </nav>
+
+        <!-- Documentação -->
+        <nav aria-label="Documentação">
+          <p class="footer__col-title">Documentação</p>
+          <ul class="footer__col-links">
+            <li><a href="DOCUMENTACAO.md" target="_blank" rel="noopener">Documentação</a></li>
+          </ul>
+        </nav>
+
+        <!-- Contato -->
+        <div>
+          <p class="footer__col-title">Contato</p>
+          <a href="mailto:ecotechsolutions.startup@gmail.com" class="footer__contact-item">
+            <span class="footer__contact-icon">✉</span>
+            ecotechsolutions.startup@gmail.com
+          </a>
+          <p class="footer__col-title" style="margin-top:20px">Área</p>
+          <p style="font-size:.82rem;color:var(--text-muted);line-height:1.6">
+            Tecnologia, Automação<br>e Sustentabilidade
+          </p>
+        </div>
+
+      </div>
+
+      <div class="footer__bottom">
+        <p class="footer__copy">
+          © 2025 <span>Ecotech</span>. Startup em crescimento.
+        </p>
+        <span class="footer__area">
+          Automação · IoT · Sustentabilidade
+        </span>
+      </div>
+
+    </div>
+  </footer>
+
+  <script src="js/nav.js" defer></script>
+  <script src="js/animations.js" defer></script>
+
+</body>
+</html>

@@ -1,0 +1,77 @@
+/* ═══════════════════════════════════════
+   IMPACT — Mais Verde, Menos Desperdício
+   ═══════════════════════════════════════ */
+.impact {
+  background: var(--bg-card);
+  position: relative;
+  overflow: hidden;
+}
+
+.impact__glow {
+  width: 700px; height: 400px;
+  background: radial-gradient(ellipse, rgba(34,197,94,0.07) 0%, transparent 70%);
+  top: -100px; left: -200px;
+}
+
+.impact__header { text-align: center; max-width: 620px; margin-inline: auto; margin-bottom: 64px; }
+.impact__header .section-desc { margin-top: 16px; margin-inline: auto; }
+
+.impact__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 56px; }
+
+.impact-card {
+  padding: 36px 32px;
+  background: var(--gradient-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--dur), transform var(--dur);
+}
+
+.impact-card:hover { border-color: var(--border-green); transform: translateY(-3px); }
+
+.impact-card__accent {
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px; height: 100%;
+  background: var(--gradient-green);
+  border-radius: 4px 0 0 4px;
+}
+
+.impact-card__icon   { font-size: 2rem; margin-bottom: 16px; }
+.impact-card__title  { font-size: .82rem; font-weight: 700; color: var(--green-400); margin-bottom: 10px; text-transform: uppercase; letter-spacing: .05em; }
+.impact-card__text   { font-size: .9rem; color: var(--text-secondary); line-height: 1.72; }
+
+/* Banner de destaque */
+.impact__banner {
+  padding: 40px 48px;
+  background: linear-gradient(135deg, rgba(34,197,94,0.1) 0%, rgba(21,128,61,0.06) 100%);
+  border: 1px solid var(--border-green);
+  border-radius: var(--radius-xl);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 32px;
+  align-items: center;
+}
+
+.impact__banner-text p { font-size: 1rem; color: var(--text-secondary); line-height: 1.75; max-width: 600px; }
+.impact__banner-text p strong { color: var(--text-primary); }
+
+.impact__banner-stat { text-align: center; flex-shrink: 0; }
+
+.impact__banner-stat-num {
+  font-size: 3rem;
+  font-weight: 900;
+  color: var(--green-400);
+  line-height: 1;
+  letter-spacing: -.04em;
+}
+
+.impact__banner-stat-num span { font-size: 1.5rem; }
+.impact__banner-stat-label { font-size: .8rem; color: var(--text-secondary); margin-top: 4px; }
+
+@media (max-width: 900px) {
+  .impact__grid { grid-template-columns: 1fr; }
+  .impact__banner { grid-template-columns: 1fr; text-align: center; padding: 32px 24px; }
+  .impact__banner-text p { margin-inline: auto; }
+}
