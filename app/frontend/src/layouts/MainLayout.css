@@ -1,0 +1,45 @@
+.main-layout {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  position: relative;
+  overflow-x: hidden;
+}
+.bg-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(600px 300px at 85% -5%, rgba(47, 182, 240, 0.12), transparent 60%),
+    radial-gradient(500px 260px at 100% 10%, rgba(34, 197, 94, 0.1), transparent 60%);
+  z-index: 0;
+}
+.main-content {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+.sidebar-shell { position: relative; z-index: 5; }
+.sidebar-scrim { display: none; }
+
+@media (max-width: 900px) {
+  .sidebar-shell {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    height: 100dvh;
+    max-width: 85vw;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+  }
+  .sidebar-shell-open { transform: translateX(0); }
+  .sidebar-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 4;
+  }
+}

@@ -1,0 +1,35 @@
+.input-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.input-label {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+.input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 0 14px;
+  transition: border-color 0.15s ease;
+}
+.input-wrap:focus-within { border-color: var(--border-glow); }
+.input-icon { color: var(--text-muted); display: flex; }
+.input-trailing { color: var(--text-muted); display: flex; cursor: pointer; }
+.input-wrap input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  padding: 13px 0;
+  font-size: 14.5px;
+  min-width: 0;
+}
+.input-wrap input::placeholder { color: var(--text-muted); }

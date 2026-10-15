@@ -1,0 +1,90 @@
+:root {
+  --bg-app: #0a1420;
+  --bg-sidebar: #0b1a2c;
+  --bg-card: #0e1f33;
+  --bg-card-alt: #0d1c2e;
+  --bg-input: #0a1626;
+  --border-subtle: #1c3350;
+  --border-strong: #2a4766;
+  --border-glow: #1e90b0;
+
+  --text-primary: #eef3f8;
+  --text-secondary: #93a6bd;
+  --text-muted: #5f7692;
+
+  --accent-green: #22c55e;
+  --accent-green-strong: #16d17a;
+  --accent-blue: #2fb6f0;
+  --accent-blue-strong: #3b9dfa;
+  --accent-cyan: #22d3ee;
+
+  --status-ideal-bg: #123a24;
+  --status-ideal-fg: #34d17a;
+  --status-atencao-bg: #3a2f10;
+  --status-atencao-fg: #f0b93a;
+  --status-abaixo-bg: #3a1414;
+  --status-abaixo-fg: #f0554f;
+
+  --danger: #ef4444;
+  --danger-strong: #f14a4a;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  --shadow-card: 0 0 0 1px var(--border-subtle);
+  --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+[data-theme='light'] {
+  --bg-app: #f3f6fa;
+  --bg-sidebar: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-alt: #f8fafc;
+  --bg-input: #f1f5f9;
+  --border-subtle: #dde5ee;
+  --border-strong: #c7d2e0;
+  --border-glow: #7dd3f0;
+
+  --text-primary: #101828;
+  --text-secondary: #4b5872;
+  --text-muted: #8a97ab;
+
+  --status-ideal-bg: #e3f9ec;
+  --status-ideal-fg: #16a34a;
+  --status-atencao-bg: #fdf3d8;
+  --status-atencao-fg: #b7791f;
+  --status-abaixo-bg: #fde3e2;
+  --status-abaixo-fg: #d92d2d;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 8px; }
+
+.scroll-x { overflow-x: auto; }
+
+@media (max-width: 900px) {
+  .hide-mobile { display: none !important; }
+  /* evita o zoom automático do iOS ao focar campos com fonte < 16px */
+  input, select, textarea { font-size: 16px !important; }
+}

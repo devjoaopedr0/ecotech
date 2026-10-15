@@ -1,0 +1,35 @@
+.table-scroll { width: 100%; -webkit-overflow-scrolling: touch; }
+.app-table { width: 100%; border-collapse: collapse; min-width: 560px; }
+.app-table thead th {
+  font-size: 12.5px;
+  text-transform: none;
+  color: var(--text-muted);
+  font-weight: 700;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.app-table tbody td {
+  padding: 13px 14px;
+  font-size: 14px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.app-table tbody tr:last-child td { border-bottom: none; }
+.app-table tbody tr:hover { background: var(--bg-card-alt); }
+.table-empty { text-align: center; color: var(--text-muted); padding: 30px 0 !important; }
+
+@media (max-width: 900px) {
+  /* a tabela ocupa só o que o conteúdo pede e rola na horizontal dentro do card */
+  .app-table { min-width: 0; }
+  .app-table thead th, .app-table tbody td { white-space: nowrap; padding-left: 10px; padding-right: 10px; }
+  .app-table tbody td.table-empty { white-space: normal; }
+}
+@media (max-width: 560px) {
+  /* compacta as colunas para a tabela caber sem cortar o status */
+  .app-table thead th { font-size: 12px; padding-left: 6px; padding-right: 6px; }
+  .app-table tbody td { font-size: 13px; padding: 12px 6px; }
+  .app-table th:first-child, .app-table td:first-child { padding-left: 0; }
+  .app-table th:last-child, .app-table td:last-child { padding-right: 0; }
+  .app-table .status-badge { font-size: 11.5px; padding: 3px 8px; gap: 4px; }
+  .app-table .status-badge svg { display: none; }
+}

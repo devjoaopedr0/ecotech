@@ -1,0 +1,109 @@
+.plantas-layout {
+  display: grid;
+  grid-template-columns: 1.9fr 1fr;
+  gap: 18px;
+  align-items: start;
+}
+.plantas-table-card { min-width: 0; }
+.plantas-search { width: 260px; }
+.plantas-side { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+
+.plant-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+.plant-name-cell:hover { color: var(--accent-blue); }
+.plant-emoji {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--bg-input);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.row-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+.plantas-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pagination-controls { display: flex; align-items: center; gap: 10px; }
+.pagination-page {
+  min-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--accent-blue-strong);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.plant-preview-card { display: flex; align-items: center; gap: 16px; }
+.plant-preview-avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 14px;
+  background: var(--bg-input);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  flex-shrink: 0;
+}
+.plant-preview-info { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
+.plant-preview-info strong { font-size: 17px; color: var(--text-primary); }
+.plant-preview-range {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+.plant-preview-range strong { font-size: 13px; color: var(--accent-blue); }
+
+.edit-plant-form { display: flex; flex-direction: column; gap: 16px; }
+.range-fields { display: flex; flex-direction: column; gap: 8px; }
+.range-label { font-size: 13.5px; color: var(--text-secondary); font-weight: 600; }
+.range-inputs { display: flex; align-items: center; gap: 10px; }
+.range-inputs input {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-input);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 12px 14px;
+  font-size: 14.5px;
+}
+.range-inputs input:focus { outline: none; border-color: var(--border-glow); }
+.range-inputs span { color: var(--text-muted); }
+.edit-form-actions { display: flex; gap: 12px; }
+
+.info-grid-1col { grid-template-columns: 1fr; }
+.confirm-text { margin: 0; color: var(--text-secondary); font-size: 14.5px; line-height: 1.5; }
+
+@media (max-width: 1100px) {
+  .plantas-layout { grid-template-columns: 1fr; }
+  .plantas-search { width: 100%; }
+}
