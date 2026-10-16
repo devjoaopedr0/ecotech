@@ -25,8 +25,19 @@ enum IrrigationSource {
 }
 
 enum AlertType {
+  CRITICAL
   LOW
   HIGH
+  RESERVOIR_LOW
+  HIGH_TEMPERATURE
+  WATER_STRESS
+}
+
+/// Placa que lê os sensores; define a escala do conversor analógico
+/// (Arduino 0–1023, ESP32 0–4095).
+enum SensorBoard {
+  ARDUINO
+  ESP32
 }
 
 model User {
@@ -42,6 +53,7 @@ model User {
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   plants                 Plant[]
+  crops                  Crop[]
   devices                Device[]
   alerts                 Alert[]
   notificationPreference NotificationPreference?
@@ -64,22 +76,55 @@ model PlantCatalog {
   @@map("plant_catalog")
 }
 
+/// Parâmetros ideais de uma cultura (ex.: alface), compartilhados pelas
+/// plantas do usuário que a cultivam. Os limites de umidade ficam na planta.
+model Crop {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  name              String
+  temperatureMin    Decimal  @map("temperature_min") @db.Decimal(4, 1)
+  temperatureMax    Decimal  @map("temperature_max") @db.Decimal(4, 1)
+  /// Luminosidade, em lux.
+  lightMin          Int      @map("light_min")
+  lightMax          Int      @map("light_max")
+  /// Irrigações recomendadas por dia (0.5 = a cada dois dias).
+  irrigationsPerDay Decimal  @map("irrigations_per_day") @db.Decimal(4, 2)
+  cycleDays         Int      @map("cycle_days")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plants Plant[]
+
+  @@unique([userId, name])
+  @@map("crops")
+}
+
+/// Limites de umidade do solo, em %, sempre em ordem:
+/// humidityCritical < humidityLow <= idealMin < idealMax <= humidityHigh.
 model Plant {
-  id             String   @id @default(uuid()) @db.Uuid
-  userId         String   @map("user_id") @db.Uuid
-  catalogPlantId String?  @map("catalog_plant_id") @db.Uuid
-  name           String
-  species        String?
-  emoji          String   @default("🌱")
-  location       String?
-  /// Faixa ideal de umidade do solo, em % (min < max).
-  humidityMin    Int      @map("humidity_min")
-  humidityMax    Int      @map("humidity_max")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  catalogPlantId   String?   @map("catalog_plant_id") @db.Uuid
+  cropId           String?   @map("crop_id") @db.Uuid
+  name             String
+  species          String?
+  emoji            String    @default("🌱")
+  location         String?
+  /// Canteiro onde a planta está (ex.: "Canteiro 02").
+  bed              String?
+  plantedAt        DateTime? @map("planted_at") @db.Date
+  humidityCritical Int       @map("humidity_critical")
+  humidityLow      Int       @map("humidity_low")
+  idealMin         Int       @map("ideal_min")
+  idealMax         Int       @map("ideal_max")
+  humidityHigh     Int       @map("humidity_high")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
   user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   catalogPlant       PlantCatalog?       @relation(fields: [catalogPlantId], references: [id], onDelete: SetNull)
+  crop               Crop?               @relation(fields: [cropId], references: [id], onDelete: SetNull)
   devices            Device[]
   readings           Reading[]
   irrigationEvents   IrrigationEvent[]
@@ -90,51 +135,81 @@ model Plant {
   @@map("plants")
 }
 
-/// Sensor (ESP32). Autentica no `POST /readings` com um token próprio, do
-/// qual só o hash SHA-256 é guardado; o token em si é exibido uma única vez.
+/// Placa com sensores (ESP32 ou Arduino). Autentica no `POST /readings` com
+/// um token próprio, do qual só o hash SHA-256 é guardado; o token em si é
+/// exibido uma única vez. A placa envia o valor bruto do sensor de umidade e
+/// a calibração (seco/molhado) fica aqui, no sistema.
 model Device {
-  id         String    @id @default(uuid()) @db.Uuid
-  userId     String    @map("user_id") @db.Uuid
-  plantId    String?   @map("plant_id") @db.Uuid
+  id         String      @id @default(uuid()) @db.Uuid
+  userId     String      @map("user_id") @db.Uuid
+  plantId    String?     @map("plant_id") @db.Uuid
   name       String
-  macAddress String?   @unique @map("mac_address")
+  macAddress String?     @unique @map("mac_address")
   location   String?
-  active     Boolean   @default(true)
-  tokenHash  String    @unique @map("token_hash")
-  lastSeenAt DateTime? @map("last_seen_at")
-  createdAt  DateTime  @default(now()) @map("created_at")
-  updatedAt  DateTime  @updatedAt @map("updated_at")
+  active     Boolean     @default(true)
+  tokenHash  String      @unique @map("token_hash")
+  board      SensorBoard @default(ESP32)
+  /// Leitura bruta com o sensor no ar (0%) e na água (100%). Sem elas, vale
+  /// a calibração padrão da placa.
+  rawDry     Int?        @map("raw_dry")
+  rawWet     Int?        @map("raw_wet")
+  /// Profundidade de instalação do sensor de umidade, em cm.
+  depthCm    Int?        @map("depth_cm")
+  position   String?
+  lastSeenAt DateTime?   @map("last_seen_at")
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   plant    Plant?    @relation(fields: [plantId], references: [id], onDelete: SetNull)
   readings Reading[]
+  alerts   Alert[]
 
   @@index([userId])
   @@map("devices")
 }
 
+/// Uma leitura da placa. Cada grandeza é opcional: a placa manda só os
+/// sensores que tem. Umidade do solo exige a placa vinculada a uma planta.
 model Reading {
-  id        String   @id @default(uuid()) @db.Uuid
-  plantId   String   @map("plant_id") @db.Uuid
-  deviceId  String?  @map("device_id") @db.Uuid
-  /// Umidade do solo em % (0–100).
-  humidity  Decimal  @db.Decimal(5, 2)
-  createdAt DateTime @default(now()) @map("created_at")
+  id              String   @id @default(uuid()) @db.Uuid
+  plantId         String?  @map("plant_id") @db.Uuid
+  deviceId        String?  @map("device_id") @db.Uuid
+  /// Umidade do solo em % (0–100), já convertida pela calibração.
+  humidity        Decimal? @db.Decimal(5, 2)
+  /// Valor bruto do ADC do sensor de umidade.
+  rawValue        Int?     @map("raw_value")
+  /// Temperatura do ar, em °C.
+  temperature     Decimal? @db.Decimal(4, 1)
+  /// Umidade relativa do ar, em %.
+  airHumidity     Decimal? @map("air_humidity") @db.Decimal(5, 2)
+  leafTemperature Decimal? @map("leaf_temperature") @db.Decimal(4, 1)
+  /// Luminosidade, em lux.
+  light           Int?
+  /// Nível do reservatório, em %.
+  waterLevel      Decimal? @map("water_level") @db.Decimal(5, 2)
+  createdAt       DateTime @default(now()) @map("created_at")
 
-  plant  Plant   @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  plant  Plant?  @relation(fields: [plantId], references: [id], onDelete: Cascade)
   device Device? @relation(fields: [deviceId], references: [id], onDelete: SetNull)
 
   @@index([plantId, createdAt])
+  @@index([deviceId, createdAt])
   @@map("readings")
 }
 
 /// Estado da irrigação de uma planta. Criado sob demanda (padrão: MANUAL,
 /// desligada).
 model IrrigationSettings {
-  plantId   String         @id @map("plant_id") @db.Uuid
-  mode      IrrigationMode @default(MANUAL)
-  isOn      Boolean        @default(false) @map("is_on")
-  updatedAt DateTime       @updatedAt @map("updated_at")
+  plantId     String         @id @map("plant_id") @db.Uuid
+  mode        IrrigationMode @default(MANUAL)
+  isOn        Boolean        @default(false) @map("is_on")
+  /// Ligado quando o usuário desliga a irrigação com o solo ainda crítico: o
+  /// modo automático não religa até a umidade sair do nível crítico.
+  autoBlocked Boolean        @default(false) @map("auto_blocked")
+  /// Vazão do ponto de irrigação, em litros por minuto.
+  flowRateLpm Decimal        @default(2) @map("flow_rate_lpm") @db.Decimal(5, 2)
+  updatedAt   DateTime       @updatedAt @map("updated_at")
 
   plant Plant @relation(fields: [plantId], references: [id], onDelete: Cascade)
 
@@ -143,11 +218,19 @@ model IrrigationSettings {
 
 /// Um ciclo de irrigação: aberto ao ligar, `endedAt` preenchido ao desligar.
 model IrrigationEvent {
-  id        String           @id @default(uuid()) @db.Uuid
-  plantId   String           @map("plant_id") @db.Uuid
-  source    IrrigationSource
-  startedAt DateTime         @default(now()) @map("started_at")
-  endedAt   DateTime?        @map("ended_at")
+  id                 String           @id @default(uuid()) @db.Uuid
+  plantId            String           @map("plant_id") @db.Uuid
+  source             IrrigationSource
+  reason             String
+  /// Duração pedida, em minutos; null = até ser desligada.
+  plannedDurationMin Int?             @map("planned_duration_min")
+  /// Resposta do solo: umidade antes e depois da irrigação.
+  humidityBefore     Decimal?         @map("humidity_before") @db.Decimal(5, 2)
+  humidityAfter      Decimal?         @map("humidity_after") @db.Decimal(5, 2)
+  /// Calculado ao fechar o ciclo: minutos × vazão.
+  liters             Decimal?         @db.Decimal(8, 2)
+  startedAt          DateTime         @default(now()) @map("started_at")
+  endedAt            DateTime?        @map("ended_at")
 
   plant Plant @relation(fields: [plantId], references: [id], onDelete: Cascade)
 
@@ -167,19 +250,24 @@ model NotificationPreference {
   @@map("notification_preferences")
 }
 
-/// Gerado quando uma leitura sai da faixa ideal da planta. Enquanto houver um
-/// alerta não lido do mesmo tipo para a planta, nenhum novo é criado.
+/// Gerado por uma leitura fora do esperado (umidade, reservatório,
+/// temperatura, estresse hídrico). Enquanto houver um alerta não lido do
+/// mesmo tipo para a mesma planta (ou placa), nenhum novo é criado.
 model Alert {
   id        String    @id @default(uuid()) @db.Uuid
   userId    String    @map("user_id") @db.Uuid
-  plantId   String    @map("plant_id") @db.Uuid
+  plantId   String?   @map("plant_id") @db.Uuid
+  deviceId  String?   @map("device_id") @db.Uuid
   type      AlertType
-  humidity  Decimal   @db.Decimal(5, 2)
+  /// Valor que disparou o alerta: umidade ou nível em %, temperatura em °C,
+  /// ou a diferença folha − ar em °C.
+  value     Decimal   @db.Decimal(6, 2)
   readAt    DateTime? @map("read_at")
   createdAt DateTime  @default(now()) @map("created_at")
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plant Plant @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plant  Plant?  @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  device Device? @relation(fields: [deviceId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
   @@map("alerts")

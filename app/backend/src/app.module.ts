@@ -5,6 +5,7 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { AlertsModule } from './alerts/alerts.module';
 import { AuthModule } from './auth/auth.module';
 import { CatalogModule } from './catalog/catalog.module';
+import { CropsModule } from './crops/crops.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { RateLimitMiddleware } from './common/middleware/rate-limit.middleware';
 import { validateEnv } from './config/env.validation';
@@ -14,6 +15,7 @@ import { HealthController } from './health.controller';
 import { IrrigationModule } from './irrigation/irrigation.module';
 import { PlantsModule } from './plants/plants.module';
 import { ReadingsModule } from './readings/readings.module';
+import { ReportsModule } from './reports/reports.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -29,11 +31,13 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     UsersModule,
     CatalogModule,
+    CropsModule,
     PlantsModule,
     DevicesModule,
     IrrigationModule,
     AlertsModule,
     ReadingsModule,
+    ReportsModule,
   ],
   controllers: [HealthController],
   providers: [

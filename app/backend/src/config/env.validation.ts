@@ -1,5 +1,5 @@
 import { Type, plainToInstance } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Max, Min, MinLength, validateSync } from 'class-validator';
+import { IsInt, IsNumber, IsOptional, IsString, Max, Min, MinLength, validateSync } from 'class-validator';
 
 /**
  * Valida process.env no boot: se faltar alguma variável obrigatória, a API
@@ -46,6 +46,13 @@ class EnvironmentVariables {
   @IsInt()
   @Min(1)
   RATE_LIMIT_MAX?: number;
+
+  /** Tarifa de água em R$/m³, usada nos relatórios. */
+  @Type(() => Number)
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  WATER_TARIFF_PER_M3?: number;
 }
 
 export function validateEnv(config: Record<string, unknown>): EnvironmentVariables {

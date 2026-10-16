@@ -33,7 +33,7 @@ export class AlertsController {
   constructor(private readonly alertsService: AlertsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Alertas de planta fora da faixa (mais recentes primeiro).' })
+  @ApiOperation({ summary: 'Alertas de umidade, reservatório, temperatura e estresse hídrico (mais recentes primeiro).' })
   list(@CurrentUser() user: User, @Query() query: AlertsQueryDto) {
     return this.alertsService.list(user.id, query.unread ?? false, query.limit ?? 50);
   }

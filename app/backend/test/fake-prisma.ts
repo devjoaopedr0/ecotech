@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
  * Substituto em memória do PrismaService para os testes e2e: sobe a
  * aplicação NestJS real (guards, pipes, filtros, controllers) sem precisar
  * de um Postgres. Implementa só a fatia da API do Prisma que os services
- * usam: where com igualdade, OR, gte/lte/gt/lt, in e contains; orderBy de um
+ * usam: where com igualdade, OR, not, gte/lte/gt/lt, in e contains; orderBy de um
  * campo; skip/take; select raso; increment.
  */
 
@@ -13,13 +13,20 @@ type Row = Record<string, any>;
 const DEFAULTS: Record<string, () => Row> = {
   user: () => ({ role: 'USER', sessionVersion: 0, lastLogin: null }),
   plantCatalog: () => ({}),
-  plant: () => ({ catalogPlantId: null, species: null, emoji: '🌱', location: null }),
-  device: () => ({ plantId: null, macAddress: null, location: null, active: true, lastSeenAt: null }),
-  reading: () => ({ deviceId: null }),
-  irrigationSettings: () => ({ mode: 'MANUAL', isOn: false }),
-  irrigationEvent: () => ({ endedAt: null }),
+  crop: () => ({}),
+  plant: () => ({ catalogPlantId: null, cropId: null, species: null, emoji: '🌱', location: null, bed: null, plantedAt: null }),
+  device: () => ({
+    plantId: null, macAddress: null, location: null, active: true, lastSeenAt: null,
+    board: 'ESP32', rawDry: null, rawWet: null, depthCm: null, position: null,
+  }),
+  reading: () => ({
+    plantId: null, deviceId: null, humidity: null, rawValue: null, temperature: null,
+    airHumidity: null, leafTemperature: null, light: null, waterLevel: null,
+  }),
+  irrigationSettings: () => ({ mode: 'MANUAL', isOn: false, autoBlocked: false, flowRateLpm: 2 }),
+  irrigationEvent: () => ({ endedAt: null, plannedDurationMin: null, humidityBefore: null, humidityAfter: null, liters: null }),
   notificationPreference: () => ({ garden: true, email: false, system: true }),
-  alert: () => ({ readAt: null }),
+  alert: () => ({ plantId: null, deviceId: null, readAt: null }),
 };
 
 /** Modelos cuja chave primária não é `id`. */
@@ -37,6 +44,9 @@ function matches(row: Row, where: Row = {}): boolean {
     if (typeof condition === 'object' && !(condition instanceof Date)) {
       const c = condition as Row;
       if ('equals' in c && value !== c.equals) return false;
+      if ('not' in c) {
+        if (c.not === null ? value === null || value === undefined : value === c.not) return false;
+      }
       if ('in' in c && !c.in.includes(value)) return false;
       if ('gte' in c && !(value >= c.gte)) return false;
       if ('gt' in c && !(value > c.gt)) return false;

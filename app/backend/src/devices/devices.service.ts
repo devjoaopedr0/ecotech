@@ -1,9 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Device } from '@prisma/client';
 import { createHash, randomBytes } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service';
+import { validateCalibration } from '../domain/sensors';
 import { PlantsService } from '../plants/plants.service';
-import { CreateDeviceDto, DeviceResponseDto, DeviceWithTokenDto, UpdateDeviceDto } from './dto/device.dto';
+import {
+  CalibrationDto,
+  CreateDeviceDto,
+  DeviceResponseDto,
+  DeviceWithTokenDto,
+  UpdateDeviceDto,
+} from './dto/device.dto';
 
 export const DEVICE_TOKEN_PREFIX = 'etk_';
 
@@ -23,11 +30,11 @@ export class DevicesService {
       where: { userId },
       orderBy: { createdAt: 'asc' },
     });
-    return devices.map(DeviceResponseDto.from);
+    return Promise.all(devices.map((device) => this.toResponse(device)));
   }
 
   async get(userId: string, deviceId: string): Promise<DeviceResponseDto> {
-    return DeviceResponseDto.from(await this.findOwned(userId, deviceId));
+    return this.toResponse(await this.findOwned(userId, deviceId));
   }
 
   async create(userId: string, dto: CreateDeviceDto): Promise<DeviceWithTokenDto> {
@@ -40,6 +47,9 @@ export class DevicesService {
         macAddress: dto.macAddress?.toUpperCase() ?? null,
         location: dto.location ?? null,
         plantId: dto.plantId ?? null,
+        board: dto.board,
+        depthCm: dto.depthCm ?? null,
+        position: dto.position ?? null,
         tokenHash: hashDeviceToken(token),
       },
     });
@@ -50,7 +60,20 @@ export class DevicesService {
     const device = await this.findOwned(userId, deviceId);
     if (dto.plantId) await this.plantsService.findOwned(userId, dto.plantId);
     const updated = await this.prisma.device.update({ where: { id: device.id }, data: dto });
-    return DeviceResponseDto.from(updated);
+    return this.toResponse(updated);
+  }
+
+  /** Grava a calibração seco/molhado. As próximas leituras brutas passam a
+   * ser convertidas com ela; as já gravadas mantêm a % da época. */
+  async calibrate(userId: string, deviceId: string, dto: CalibrationDto): Promise<DeviceResponseDto> {
+    const device = await this.findOwned(userId, deviceId);
+    const error = validateCalibration(dto.board, dto);
+    if (error) throw new BadRequestException(error);
+    const updated = await this.prisma.device.update({
+      where: { id: device.id },
+      data: { board: dto.board, rawDry: dto.rawDry, rawWet: dto.rawWet },
+    });
+    return this.toResponse(updated);
   }
 
   /** Gera um token novo; o anterior para de funcionar na hora. */
@@ -61,7 +84,7 @@ export class DevicesService {
       where: { id: device.id },
       data: { tokenHash: hashDeviceToken(token) },
     });
-    return { ...DeviceResponseDto.from(updated), token };
+    return { ...(await this.toResponse(updated)), token };
   }
 
   async remove(userId: string, deviceId: string): Promise<void> {
@@ -72,6 +95,14 @@ export class DevicesService {
   /** Usado pelo DeviceTokenGuard. */
   findActiveByToken(token: string): Promise<Device | null> {
     return this.prisma.device.findFirst({ where: { tokenHash: hashDeviceToken(token), active: true } });
+  }
+
+  private async toResponse(device: Device): Promise<DeviceResponseDto> {
+    const latest = await this.prisma.reading.findFirst({
+      where: { deviceId: device.id },
+      orderBy: { createdAt: 'desc' },
+    });
+    return DeviceResponseDto.from(device, latest);
   }
 
   private async findOwned(userId: string, deviceId: string): Promise<Device> {

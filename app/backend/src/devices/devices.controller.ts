@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -16,7 +17,7 @@ import { User } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { DevicesService } from './devices.service';
-import { CreateDeviceDto, DeviceResponseDto, DeviceWithTokenDto, UpdateDeviceDto } from './dto/device.dto';
+import { CalibrationDto, CreateDeviceDto, DeviceResponseDto, DeviceWithTokenDto, UpdateDeviceDto } from './dto/device.dto';
 
 @ApiTags('devices')
 @ApiBearerAuth()
@@ -45,7 +46,7 @@ export class DevicesController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Renomeia, ativa/desativa ou (des)vincula o sensor a uma planta.' })
+  @ApiOperation({ summary: 'Renomeia, ativa/desativa, (des)vincula a uma planta ou muda profundidade/posição.' })
   @ApiResponse({ status: 200, type: DeviceResponseDto })
   update(
     @CurrentUser() user: User,
@@ -53,6 +54,17 @@ export class DevicesController {
     @Body() dto: UpdateDeviceDto,
   ): Promise<DeviceResponseDto> {
     return this.devicesService.update(user.id, id, dto);
+  }
+
+  @Put(':id/calibration')
+  @ApiOperation({ summary: 'Grava a calibração do sensor de umidade (leitura bruta no ar e na água).' })
+  @ApiResponse({ status: 200, type: DeviceResponseDto })
+  calibrate(
+    @CurrentUser() user: User,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: CalibrationDto,
+  ): Promise<DeviceResponseDto> {
+    return this.devicesService.calibrate(user.id, id, dto);
   }
 
   @Post(':id/token')

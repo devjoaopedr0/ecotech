@@ -1,21 +1,14 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiHeader, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Device, User } from '@prisma/client';
-import { IsNumber, Max, Min } from 'class-validator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { parseRange } from '../common/date-range';
 import { CurrentDevice } from '../common/decorators/current-device.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { PeriodQueryDto } from '../common/period-query.dto';
 import { DeviceTokenGuard } from '../devices/device-token.guard';
-import { IngestResult, ReadingsService } from './readings.service';
-
-export class CreateReadingDto {
-  @ApiProperty({ example: 47.5, minimum: 0, maximum: 100, description: 'Umidade do solo em %.' })
-  @IsNumber({ maxDecimalPlaces: 2 }, { message: 'humidity deve ser um número com até 2 casas decimais.' })
-  @Min(0)
-  @Max(100)
-  humidity: number;
-}
+import { CollectedReadingDto, CreateReadingDto, IngestResultDto, ReadingsRangeQueryDto } from './dto/reading.dto';
+import { ReadingsService } from './readings.service';
 
 @ApiTags('readings')
 @Controller()
@@ -24,19 +17,30 @@ export class ReadingsController {
 
   @Post('readings')
   @UseGuards(DeviceTokenGuard)
-  @ApiHeader({ name: 'X-Device-Token', required: true, description: 'Token gerado no cadastro do sensor.' })
+  @ApiHeader({ name: 'X-Device-Token', required: true, description: 'Token gerado no cadastro da placa.' })
   @ApiOperation({
-    summary: 'Ingestão de leitura pelo ESP32.',
-    description: 'A resposta traz o comando de irrigação (ON/OFF) que o dispositivo deve aplicar.',
+    summary: 'Ingestão de leitura pela placa (ESP32/Arduino).',
+    description: 'A resposta traz o comando de irrigação (ON/OFF) que a placa deve aplicar.',
   })
-  ingest(@CurrentDevice() device: Device, @Body() dto: CreateReadingDto): Promise<IngestResult> {
-    return this.readingsService.ingest(device, dto.humidity);
+  @ApiResponse({ status: 201, type: IngestResultDto })
+  ingest(@CurrentDevice() device: Device, @Body() dto: CreateReadingDto): Promise<IngestResultDto> {
+    return this.readingsService.ingest(device, dto);
+  }
+
+  @Get('readings')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Leituras de todas as placas no intervalo (até 31 dias), mais recentes primeiro.' })
+  @ApiResponse({ status: 200, type: [CollectedReadingDto] })
+  listAll(@CurrentUser() user: User, @Query() query: ReadingsRangeQueryDto): Promise<CollectedReadingDto[]> {
+    const { from, to } = parseRange(query.from, query.to, 31);
+    return this.readingsService.listAll(user.id, from, to, query.limit ?? 500);
   }
 
   @Get('plants/:plantId/readings')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Leituras brutas do período, mais recentes primeiro.' })
+  @ApiOperation({ summary: 'Leituras de umidade do período, mais recentes primeiro.' })
   list(
     @CurrentUser() user: User,
     @Param('plantId', ParseUUIDPipe) plantId: string,
