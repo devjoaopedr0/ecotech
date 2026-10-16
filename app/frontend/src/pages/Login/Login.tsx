@@ -15,23 +15,21 @@ export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setErro('');
     if (!usuario.trim() || !senha.trim()) {
-      setErro('Preencha usuário e senha para continuar.');
+      setErro('Preencha e-mail e senha para continuar.');
       return;
     }
     setCarregando(true);
-    setTimeout(() => {
-      const ok = login(usuario, senha);
-      setCarregando(false);
-      if (ok) {
-        navigate(ROTAS.visaoGeral, { replace: true });
-      } else {
-        setErro('Usuário ou senha inválidos.');
-      }
-    }, 500);
+    const falha = await login(usuario, senha);
+    setCarregando(false);
+    if (falha) {
+      setErro(falha);
+    } else {
+      navigate(ROTAS.visaoGeral, { replace: true });
+    }
   };
 
   return (
@@ -68,10 +66,11 @@ export default function Login() {
         <div className="login-fields">
           <Input
             icon={<UserCircleIcon width={18} height={18} />}
-            placeholder="Usuário"
+            placeholder="E-mail"
+            type="email"
             value={usuario}
             onChange={(e) => setUsuario(e.target.value)}
-            autoComplete="username"
+            autoComplete="email"
           />
           <Input
             icon={<LockIcon width={18} height={18} />}

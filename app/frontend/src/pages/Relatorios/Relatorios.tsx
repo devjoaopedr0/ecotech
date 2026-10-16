@@ -65,7 +65,7 @@ export default function Relatorios({ openMenu }: { openMenu?: () => void }) {
         return [
           formatarData(l.ts), formatarHora(l.ts), l.plantaNome, sensor?.nome ?? `#${l.sensorCodigo}`,
           sensor?.calibracao ? `${sensor.calibracao.placa} (0-${RESOLUCAO[sensor.calibracao.placa]})` : '',
-          String(l.bruto), String(l.umidade), FASE[l.fase], String(sensor?.profundidadeCm ?? ''), sensor?.posicao ?? '',
+          l.bruto === null ? '' : String(l.bruto), String(l.umidade), FASE[l.fase], String(sensor?.profundidadeCm ?? ''), sensor?.posicao ?? '',
         ];
       }),
     ]);
@@ -169,7 +169,7 @@ export default function Relatorios({ openMenu }: { openMenu?: () => void }) {
             columns={[
               { key: 'quando', header: 'Data e hora', render: (l) => `${formatarData(l.ts)} ${formatarHora(l.ts)}` },
               { key: 'planta', header: 'Planta', render: (l) => l.plantaNome },
-              { key: 'bruto', header: 'Bruto', render: (l) => l.bruto },
+              { key: 'bruto', header: 'Bruto', render: (l) => l.bruto ?? '—' },
               { key: 'umi', header: 'Umidade', render: (l) => `${l.umidade}%` },
               { key: 'fase', header: 'Fase', render: (l) => FASE[l.fase] },
             ]}

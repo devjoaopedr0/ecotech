@@ -1,42 +1,45 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { aoExpirarSessao, ApiError, ecotechApi, type Usuario } from '../api';
 
 interface AuthContextValue {
   isAuthenticated: boolean;
+  /** Nome de exibição do usuário. */
   usuario: string;
-  login: (usuario: string, senha: string) => boolean;
+  email: string;
+  /** Resolve com null se entrou, ou com a mensagem de erro. */
+  login: (email: string, senha: string) => Promise<string | null>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return sessionStorage.getItem('ecotech-auth') === 'true';
-  });
-  const [usuario, setUsuario] = useState<string>(() => sessionStorage.getItem('ecotech-user') || '');
+  const [usuario, setUsuario] = useState<Usuario | null>(() => ecotechApi.usuarioAtual());
 
-  const login = (usuarioInput: string, _senha: string) => {
-    // Autenticação simulada: qualquer usuário/senha preenchidos são aceitos.
-    if (!usuarioInput.trim()) return false;
-    setIsAuthenticated(true);
-    setUsuario(usuarioInput);
-    sessionStorage.setItem('ecotech-auth', 'true');
-    sessionStorage.setItem('ecotech-user', usuarioInput);
-    return true;
-  };
+  const logout = useCallback(() => {
+    ecotechApi.sair();
+    setUsuario(null);
+  }, []);
 
-  const logout = () => {
-    setIsAuthenticated(false);
-    setUsuario('');
-    sessionStorage.removeItem('ecotech-auth');
-    sessionStorage.removeItem('ecotech-user');
-  };
+  // Refresh token vencido ou senha trocada em outro lugar: volta para o login.
+  useEffect(() => aoExpirarSessao(() => setUsuario(null)), []);
 
-  return (
-    <AuthContext.Provider value={{ isAuthenticated, usuario, login, logout }}>
-      {children}
-    </AuthContext.Provider>
+  const login = useCallback(async (email: string, senha: string) => {
+    try {
+      setUsuario(await ecotechApi.entrar(email.trim(), senha));
+      return null;
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) return 'E-mail ou senha incorretos.';
+      return e instanceof Error ? e.message : 'Não foi possível entrar.';
+    }
+  }, []);
+
+  const value = useMemo<AuthContextValue>(
+    () => ({ isAuthenticated: usuario !== null, usuario: usuario?.nome ?? '', email: usuario?.email ?? '', login, logout }),
+    [usuario, login, logout]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

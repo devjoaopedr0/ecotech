@@ -1,8 +1,8 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_API_URL: string;
-  readonly VITE_API_KEY: string;
+  /** URL do backend. Sem ela, o app roda com dados simulados. */
+  readonly VITE_API_URL?: string;
 }
 
 interface ImportMeta {

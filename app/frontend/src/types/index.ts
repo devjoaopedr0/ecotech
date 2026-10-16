@@ -124,6 +124,8 @@ export interface Sensor {
   localizacao: string;
   /** Quando o sensor é de umidade, a planta que ele monitora. */
   plantaId?: string;
+  /** Placa (dispositivo no backend) que contém este sensor. */
+  dispositivoId?: string;
   /** Última leitura (ms). Só relevante para sensores offline. */
   ultimaLeituraMs?: number;
   /** Leitura bruta do ADC (só sensores de umidade do solo). */
@@ -217,7 +219,8 @@ export interface LeituraColetada {
   plantaId: string;
   plantaNome: string;
   sensorCodigo: string;
-  bruto: number;
+  /** Null quando a placa enviou a umidade já em %, sem o valor bruto. */
+  bruto: number | null;
   umidade: number;
   fase: FaseLeitura;
 }

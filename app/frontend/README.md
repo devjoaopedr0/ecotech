@@ -71,12 +71,13 @@ O projeto já vem com um arquivo `.env` pronto para uso local (não precisa faze
 cp .env.example .env
 ```
 
-Depois, se for conectar a uma API real no futuro, edite o `.env` e ajuste:
+Para usar o backend (`app/backend`), deixe no `.env` a URL dele. Sem essa variável o app roda com os dados simulados:
 
 ```
 VITE_API_URL=http://localhost:3333
-VITE_API_KEY=sua-chave-aqui
 ```
+
+O login passa a ser com e-mail e senha de uma conta do backend (`POST /auth/register` no Swagger em `/docs`).
 
 > ⚠️ O arquivo `.env` nunca deve ser enviado para o Git/GitHub — ele já está listado no `.gitignore` por segurança.
 
@@ -144,15 +145,15 @@ src/
 
 | Variável | Descrição |
 | --- | --- |
-| `VITE_API_URL` | URL base da API do backend (quando existir) |
-| `VITE_API_KEY` | Chave usada na área técnica de Configurações |
+| `VITE_API_URL` | URL do backend. Sem ela, o app usa os dados simulados de `src/utils/mockData.ts` |
+
+Não existe chave de API no front: tudo que vai no bundle é público. A autenticação é por JWT (login → access token + refresh token).
 
 ## 🔌 Próximos passos sugeridos
 
-- Conectar `VITE_API_URL` a um backend real (hoje os dados são mockados em `src/utils/mockData.ts` e mantidos em memória via Context API).
-- Trocar a autenticação simulada (`sessionStorage`) por um backend real de login.
-- Persistir as plantas cadastradas em um banco de dados em vez de estado em memória.
-=======
+- Gráfico de umidade do Monitor com o histórico real (`GET /plants/:id/readings/history`); hoje ele ainda é gerado por `gerarHistoricoPlanta`.
+- Mostrar no sino os alertas gravados pelo backend (`GET /alerts`) e marcá-los como lidos.
+- Previsão do tempo, fotos e "Registrar leitura agora" dependem de recursos que o backend ainda não tem (ver "Ainda falta" no README do backend).
 
 ---
 
@@ -168,13 +169,19 @@ Funcionalidades adicionadas sobre o sistema existente (sem alterar layout/estilo
 - **Água utilizada / economizada / % de economia** no Dashboard — *"Mais verde, menos desperdício."*
 - **Sensores** (nova rota `/sensores`) e informações extras de cada planta (temperatura, última irrigação, consumo).
 
-### ⚠️ Dados simulados (sem backend)
+### ⚠️ Dados simulados (sem `VITE_API_URL`)
 
-Não existe backend nem hardware conectado. Todos os dados vêm de `src/utils/mockData.ts` e a irrigação é **simulada**: a cada ~1,5 s reais passa 1 minuto simulado e o solo ganha 2 pontos de umidade. A vazão simulada é de 2 L/min e a economia é estimada em relação a uma irrigação convencional de horário fixo.
+Sem backend configurado, todos os dados vêm de `src/utils/mockData.ts` e a irrigação é **simulada**: a cada ~1,5 s reais passa 1 minuto simulado e o solo ganha 2 pontos de umidade. A vazão simulada é de 2 L/min e a economia é estimada em relação a uma irrigação convencional de horário fixo.
 
 ### 🔌 Preparação para API / IoT
 
-`src/api/types.ts` define o contrato (`EcotechApi`) com o futuro backend — listar plantas, sensores, histórico e consumo, e enviar comandos de irrigação (que o backend repassa ao ESP32/Arduino). Hoje as telas usam `mockEcotechApi`; ao definir `VITE_API_URL` o app passa a usar `httpEcotechApi` (`src/api/ecotechApi.http.ts`). O `PlantsContext` já chama `enviarComandoIrrigacao` sempre que uma irrigação liga/desliga, e as telas só consomem o contexto.
+`src/api/types.ts` define o contrato (`EcotechApi`) no vocabulário das telas. Sem `VITE_API_URL` o app usa `mockEcotechApi` e o `PlantsContext` simula a irrigação. Com ela, usa `httpEcotechApi` e o backend passa a ser a fonte da verdade:
+
+- o `PlantsContext` carrega plantas, placas, culturas, ciclos, consumo e leituras ao entrar e a cada 15 s;
+- liga/desliga, modo, edição de planta, cultura e calibração vão para a API e, em seguida, os dados são recarregados (se a API recusar, a mudança otimista é desfeita);
+- a regra da irrigação automática roda no backend, a cada leitura da placa, e não mais no navegador.
+
+`src/api/mappers.ts` é o único lugar que conhece os dois formatos (DTOs do backend em inglês × modelos de `src/types`).
 
 ---
 
@@ -222,8 +229,11 @@ Observações: o clima, os históricos diários e a taxa de secagem são **simul
 ```
 src/api/                    ← só comunicação com o backend
   types.ts                  contrato `EcotechApi` (o que as telas podem pedir)
+  dto.ts                    formato das respostas do backend
+  mappers.ts                DTO do backend ⇄ modelos das telas
   endpoints.ts              todas as URLs/caminhos da API
-  client.ts                 fetch (VITE_API_URL, VITE_API_KEY) e `ApiError`
+  session.ts                tokens da sessão (sessionStorage) e aviso de sessão expirada
+  client.ts                 fetch com Bearer, refresh automático no 401, timeout e `ApiError`
   ecotechApi.http.ts        implementação real (REST)
   ecotechApi.mock.ts        implementação simulada (dados de utils/mockData.ts)
   index.ts                  exporta `ecotechApi`: HTTP se VITE_API_URL existir, senão mock
