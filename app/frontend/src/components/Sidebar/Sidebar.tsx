@@ -1,13 +1,16 @@
+import { ROTAS } from '../../routes/paths';
 import { NavLink } from 'react-router-dom';
-import { HomeIcon, DashboardIcon, DropletIcon, LeafIcon, GearIcon } from '../icons';
+import { HomeIcon, DashboardIcon, DropletIcon, LeafIcon, WifiIcon, DocumentIcon, GearIcon } from '../icons';
 import './Sidebar.css';
 
 const NAV_ITEMS = [
-  { to: '/', label: 'Visão Geral', icon: HomeIcon, end: true },
-  { to: '/dashboard', label: 'Dashboard', icon: DashboardIcon },
-  { to: '/monitor', label: 'Monitor', icon: DropletIcon },
-  { to: '/plantas', label: 'Plantas', icon: LeafIcon },
-  { to: '/configuracoes', label: 'Configurações', icon: GearIcon },
+  { to: ROTAS.visaoGeral, label: 'Visão Geral', icon: HomeIcon, end: true },
+  { to: ROTAS.dashboard, label: 'Dashboard', icon: DashboardIcon },
+  { to: ROTAS.monitor, label: 'Monitor', icon: DropletIcon },
+  { to: ROTAS.plantas, label: 'Plantas', icon: LeafIcon },
+  { to: ROTAS.sensores, label: 'Sensores', icon: WifiIcon },
+  { to: ROTAS.relatorios, label: 'Relatórios', icon: DocumentIcon },
+  { to: ROTAS.configuracoes, label: 'Configurações', icon: GearIcon },
 ];
 
 export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Header from '../../components/Header';
 import Card from '../../components/Card';
 import Table from '../../components/Table';
@@ -15,9 +15,12 @@ import {
   StatsIcon,
   HealthyIcon,
   ArrowUpIcon,
+  WarningIcon,
 } from '../../components/icons';
 import { usePlants, statusDaPlanta } from '../../context/PlantsContext';
-import { leiturasRecentes, relatorioIrrigacao, umidadeSemanal } from '../../utils/mockData';
+import { gerarLeiturasRecentes, umidadeSemanal } from '../../utils/mockData';
+import { formatarReais } from '../../utils/analise';
+import { formatarData, formatarDuracao, formatarHora, formatarLitros } from '../../utils/format';
 import './Dashboard.css';
 
 const PERIODOS = ['Últimos 7 dias', 'Últimos 14 dias', 'Últimos 30 dias'];
@@ -36,7 +39,7 @@ function baixarCSV(nomeArquivo: string, linhas: string[][]) {
 }
 
 export default function Dashboard({ openMenu }: { openMenu?: () => void }) {
-  const { plantas } = usePlants();
+  const { plantas, sensores, algumaIrrigando, irrigacoesAtivas, historicoIrrigacao, consumo, resumoConsumo, alertas, tarifaM3 } = usePlants();
   const [periodo, setPeriodo] = useState(PERIODOS[0]);
   const [periodoOpen, setPeriodoOpen] = useState(false);
   const [gerando, setGerando] = useState(false);
@@ -47,8 +50,13 @@ export default function Dashboard({ openMenu }: { openMenu?: () => void }) {
   const minima = Math.min(...umidades);
   const maxima = Math.max(...umidades);
   const alertasCount = plantas.filter((p) => statusDaPlanta(p) !== 'ideal').length;
+  const criticas = plantas.filter((p) => statusDaPlanta(p) === 'critico').length;
+  const emAtencao = plantas.filter((p) => statusDaPlanta(p) === 'atencao').length;
+  const saudaveis = plantas.length - criticas - emAtencao;
+  const umidadesCriticas = alertas.filter((a) => a.tipo === 'umidade_critica').length;
 
-  const leituras = mostrarTodas ? leiturasRecentes : leiturasRecentes.slice(0, 5);
+  const todasLeituras = gerarLeiturasRecentes(plantas, sensores);
+  const leituras = mostrarTodas ? todasLeituras : todasLeituras.slice(0, 5);
 
   const gerarRelatorio = () => {
     setGerando(true);
@@ -56,8 +64,19 @@ export default function Dashboard({ openMenu }: { openMenu?: () => void }) {
       baixarCSV(
         `relatorio-irrigacao-${new Date().toISOString().slice(0, 10)}.csv`,
         [
-          ['Planta', 'Data', 'Hora'],
-          ...relatorioIrrigacao.map((r) => [r.plantaNome, r.data, r.hora]),
+          ['Planta', 'Canteiro', 'Data', 'Hora', 'Duração (min)', 'Modo', 'Motivo', 'Água (L)', 'Umidade antes (%)', 'Umidade depois (%)'],
+          ...historicoIrrigacao.map((r) => [
+            r.plantaNome,
+            r.canteiro,
+            formatarData(r.timestamp),
+            formatarHora(r.timestamp),
+            String(r.duracaoMin),
+            r.modo === 'automatica' ? 'Automática' : 'Manual',
+            `"${r.motivo}"`,
+            String(r.litros),
+            String(r.umidadeAntes),
+            String(r.umidadeDepois),
+          ]),
         ]
       );
       setGerando(false);
@@ -91,8 +110,38 @@ export default function Dashboard({ openMenu }: { openMenu?: () => void }) {
           </Card>
           <Card className="dash-stat">
             <span className="dash-stat-label"><DropletIcon width={16} height={16} /> Irrigação</span>
-            <strong className="txt-ok">Ativa</strong>
-            <span className="dash-stat-sub"><span className="dot dot-on" /> em andamento</span>
+            <strong className={algumaIrrigando ? 'txt-ok' : ''}>{algumaIrrigando ? 'Ativa' : 'Inativa'}</strong>
+            <span className="dash-stat-sub">
+              <span className={`dot ${algumaIrrigando ? 'dot-on' : 'dot-off'}`} /> {algumaIrrigando ? `${irrigacoesAtivas} em andamento` : 'em espera'}
+            </span>
+          </Card>
+        </div>
+
+        <div className="dash-stats-row">
+          <Card className="dash-stat">
+            <span className="dash-stat-label"><LeafIcon width={16} height={16} /> Plantas monitoradas</span>
+            <strong>{plantas.length}</strong>
+            <span className="dash-stat-sub">{sensores.filter((s) => s.status === 'online').length} de {sensores.length} sensores online</span>
+          </Card>
+          <Card className="dash-stat">
+            <span className="dash-stat-label"><HealthyIcon width={16} height={16} /> Plantas saudáveis</span>
+            <strong className="txt-ok">{saudaveis}</strong>
+            <span className="dash-stat-sub">umidade normal</span>
+          </Card>
+          <Card className="dash-stat">
+            <span className="dash-stat-label"><WarningIcon width={16} height={16} /> Plantas em atenção</span>
+            <strong>{emAtencao}</strong>
+            <span className="dash-stat-sub">precisam de verificação</span>
+          </Card>
+          <Card className="dash-stat">
+            <span className="dash-stat-label"><WarningIcon width={16} height={16} /> Plantas críticas</span>
+            <strong>{criticas}</strong>
+            <span className="dash-stat-sub">umidade abaixo do limite</span>
+          </Card>
+          <Card className="dash-stat">
+            <span className="dash-stat-label"><DropletIcon width={16} height={16} /> Umidades críticas</span>
+            <strong>{umidadesCriticas}</strong>
+            <span className="dash-stat-sub">alertas ativos</span>
           </Card>
         </div>
 
@@ -214,14 +263,63 @@ export default function Dashboard({ openMenu }: { openMenu?: () => void }) {
           </Card>
         </div>
 
+        <div className="dash-bottom-row">
+          <Card title="Consumo de água" icon={<DropletIcon width={18} height={18} />}>
+            <div className="stats-row water-stats">
+              <div className="stats-item">
+                <span className="stats-item-label"><DropletIcon width={15} height={15} /> Água utilizada</span>
+                <strong>{formatarLitros(resumoConsumo.utilizada)}</strong>
+              </div>
+              <div className="stats-item">
+                <span className="stats-item-label"><LeafIcon width={15} height={15} /> Água economizada</span>
+                <strong className="txt-ok">{formatarLitros(resumoConsumo.economizada)}</strong>
+              </div>
+              <div className="stats-item">
+                <span className="stats-item-label"><ArrowUpIcon width={15} height={15} /> Percentual de economia</span>
+                <strong className="txt-ok">{resumoConsumo.percentualEconomia}%</strong>
+              </div>
+              <div className="stats-item">
+                <span className="stats-item-label"><ClockIcon width={15} height={15} /> Custo estimado</span>
+                <strong>{formatarReais(resumoConsumo.custo)}</strong>
+              </div>
+              <div className="stats-item">
+                <span className="stats-item-label"><ArrowUpIcon width={15} height={15} /> Economia estimada</span>
+                <strong className="txt-ok">{formatarReais(resumoConsumo.economiaEstimada)}</strong>
+              </div>
+            </div>
+            <p className="water-tagline">Mais verde, menos desperdício.</p>
+            <small className="api-hint">Últimos 7 dias · valores simulados · economia estimada em relação à irrigação em horário fixo · tarifa R$ {tarifaM3.toFixed(2).replace('.', ',')}/m³.</small>
+          </Card>
+
+          <Card title="Histórico de consumo" icon={<StatsIcon width={18} height={18} />}>
+            <div className="chart-wrap">
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={consumo.slice(-7)}>
+                  <CartesianGrid stroke="var(--border-subtle)" vertical={false} />
+                  <XAxis dataKey="data" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}L`} />
+                  <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-strong)', borderRadius: 10 }} labelStyle={{ color: 'var(--text-secondary)' }} formatter={(v) => `${v} L`} />
+                  <Bar dataKey="convencional" name="Convencional (estimado)" fill="var(--border-strong)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="utilizada" name="Utilizada" fill="#2fb6f0" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+        </div>
+
         <Card title="Relatório de Irrigação" icon={<DocumentIcon width={18} height={18} />}>
           <Table
             rowKey={(r) => r.id}
-            rows={relatorioIrrigacao}
+            rows={historicoIrrigacao}
+            emptyMessage="Nenhuma irrigação registrada."
             columns={[
-              { key: 'planta', header: 'Planta', render: (r) => r.plantaNome },
-              { key: 'data', header: 'Data', render: (r) => r.data },
-              { key: 'hora', header: 'Hora', render: (r) => r.hora },
+              { key: 'planta', header: 'Planta', render: (r) => `${r.plantaNome} · ${r.canteiro}` },
+              { key: 'data', header: 'Data', render: (r) => formatarData(r.timestamp) },
+              { key: 'hora', header: 'Hora', render: (r) => formatarHora(r.timestamp) },
+              { key: 'duracao', header: 'Duração', render: (r) => formatarDuracao(r.duracaoMin) },
+              { key: 'modo', header: 'Modo', render: (r) => (r.modo === 'automatica' ? 'Automática' : 'Manual') },
+              { key: 'motivo', header: 'Motivo', render: (r) => r.motivo },
+              { key: 'agua', header: 'Água', render: (r) => formatarLitros(r.litros) },
             ]}
           />
         </Card>

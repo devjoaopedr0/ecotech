@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { ROTAS } from '../../routes/paths';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../../components/Input';
@@ -26,7 +27,7 @@ export default function Login() {
       const ok = login(usuario, senha);
       setCarregando(false);
       if (ok) {
-        navigate('/', { replace: true });
+        navigate(ROTAS.visaoGeral, { replace: true });
       } else {
         setErro('Usuário ou senha inválidos.');
       }

@@ -19,6 +19,8 @@
   color: var(--accent-green);
   flex-shrink: 0;
 }
+.vg-health-icon-atencao { border-color: var(--status-atencao-fg); color: var(--status-atencao-fg); }
+.vg-health-icon-critico { border-color: var(--status-abaixo-fg); color: var(--status-abaixo-fg); }
 .vg-health-card h2 { margin: 0 0 2px; font-size: 18px; color: var(--text-primary); }
 .vg-health-card p { margin: 0; font-size: 13.5px; color: var(--text-secondary); }
 
@@ -98,3 +100,8 @@
   .quick-grid { grid-template-columns: 1fr; }
   .alert-item { flex-wrap: wrap; }
 }
+
+.weather-main { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; color: var(--accent-blue); }
+.weather-main > div { display: flex; flex-direction: column; gap: 2px; }
+.weather-main strong { font-size: 28px; line-height: 1; color: var(--text-primary); }
+.weather-main span { font-size: 13px; color: var(--text-secondary); }

@@ -137,3 +137,20 @@ export const ArrowRightIcon = (p: IconProps) => (
 export const ArrowUpIcon = (p: IconProps) => (
   <svg {...base(p)}><path d="M12 19V5" /><path d="m6 11 6-6 6 6" /></svg>
 );
+
+export const ThermometerIcon = (p: IconProps) => (
+  <svg {...base(p)}><path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0Z" /><path d="M12 9v7" /></svg>
+);
+export const WaveIcon = (p: IconProps) => (
+  <svg {...base(p)}><path d="M3 8c2 0 2-1.5 4.5-1.5S10 8 12 8s2.5-1.5 4.5-1.5S19 8 21 8" /><path d="M3 13c2 0 2-1.5 4.5-1.5S10 13 12 13s2.5-1.5 4.5-1.5S19 13 21 13" /><path d="M3 18c2 0 2-1.5 4.5-1.5S10 18 12 18s2.5-1.5 4.5-1.5S19 18 21 18" /></svg>
+);
+
+export const CloudIcon = (p: IconProps) => (
+  <svg {...base(p)}><path d="M7 18a4 4 0 1 1 .9-7.9A5.5 5.5 0 0 1 18.5 11 3.5 3.5 0 0 1 18 18H7Z" /></svg>
+);
+export const CloudRainIcon = (p: IconProps) => (
+  <svg {...base(p)}><path d="M7 15a4 4 0 1 1 .9-7.9A5.5 5.5 0 0 1 18.5 8 3.5 3.5 0 0 1 18 15" /><path d="M8 18l-1 2M12 18l-1 2M16 18l-1 2" /></svg>
+);
+export const CameraIcon = (p: IconProps) => (
+  <svg {...base(p)}><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" /><circle cx="12" cy="13" r="3.5" /></svg>
+);

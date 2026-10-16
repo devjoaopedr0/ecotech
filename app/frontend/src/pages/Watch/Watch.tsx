@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { ROTAS } from '../../routes/paths';
 import { DropletIcon, PlayIcon, StopIcon, AutoIcon } from '../../components/icons';
 import { useAuth } from '../../context/AuthContext';
 import { usePlants } from '../../context/PlantsContext';
@@ -20,7 +21,7 @@ export default function Watch() {
 
   const sair = () => {
     logout();
-    navigate('/login', { replace: true });
+    navigate(ROTAS.login, { replace: true });
   };
 
   return (

@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { ROTAS } from '../../routes/paths';
 import { useNavigate } from 'react-router-dom';
 import { BellIcon, UserCircleIcon, LogoutIcon, GearIcon } from '../icons';
 import { useAuth } from '../../context/AuthContext';
+import { usePlants } from '../../context/PlantsContext';
 import './Header.css';
 
 interface HeaderProps {
@@ -11,18 +13,13 @@ interface HeaderProps {
   onOpenMenu?: () => void;
 }
 
-const NOTIFICACOES = [
-  { id: 1, texto: 'Sálvia está com umidade abaixo do ideal (39%).' },
-  { id: 2, texto: 'Manjericão precisa de atenção (48%).' },
-  { id: 3, texto: 'Irrigação da Alface concluída às 07:42.' },
-];
-
 export default function Header({ title, subtitle, icon, onOpenMenu }: HeaderProps) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
   const { usuario, logout } = useAuth();
+  const { alertas } = usePlants();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -54,14 +51,15 @@ export default function Header({ title, subtitle, icon, onOpenMenu }: HeaderProp
         <div className="header-popover" ref={notifRef}>
           <button className="header-icon-btn" onClick={() => setNotifOpen((v) => !v)} aria-label="Notificações">
             <BellIcon width={19} height={19} />
-            <span className="header-icon-dot" />
+            {alertas.length > 0 && <span className="header-icon-dot" />}
           </button>
           {notifOpen && (
             <div className="popover-panel">
               <div className="popover-title">Notificações</div>
-              {NOTIFICACOES.map((n) => (
+              {alertas.length === 0 && <div className="popover-item">Nenhuma notificação no momento.</div>}
+              {alertas.slice(0, 6).map((n) => (
                 <div key={n.id} className="popover-item">
-                  {n.texto}
+                  {n.titulo}: {n.mensagem}
                 </div>
               ))}
             </div>
@@ -79,7 +77,7 @@ export default function Header({ title, subtitle, icon, onOpenMenu }: HeaderProp
                 className="popover-action"
                 onClick={() => {
                   setUserOpen(false);
-                  navigate('/configuracoes');
+                  navigate(ROTAS.configuracoes);
                 }}
               >
                 <GearIcon width={16} height={16} />
@@ -89,7 +87,7 @@ export default function Header({ title, subtitle, icon, onOpenMenu }: HeaderProp
                 className="popover-action popover-action-danger"
                 onClick={() => {
                   logout();
-                  navigate('/login');
+                  navigate(ROTAS.login);
                 }}
               >
                 <LogoutIcon width={16} height={16} />

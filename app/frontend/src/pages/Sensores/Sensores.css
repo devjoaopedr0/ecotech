@@ -1,0 +1,46 @@
+.sensores-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+.sensores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+.sensor-item {
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  min-width: 0;
+}
+.sensor-item-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+.sensor-item-head > div { flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 2px; }
+.sensor-item-head strong { font-size: 14px; color: var(--text-primary); }
+.sensor-item-head small { font-size: 12px; color: var(--text-muted); }
+.sensor-item-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--bg-input);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-blue);
+  flex-shrink: 0;
+}
+.sensor-item-rows { display: flex; flex-direction: column; gap: 10px; }
+.sensor-item-rows .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+@media (max-width: 1200px) {
+  .sensores-stats { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .sensores-stats { grid-template-columns: 1fr; }
+  .sensores-grid { grid-template-columns: 1fr; }
+}
+
+.calib-preview { margin: 0; font-size: 13.5px; color: var(--text-secondary); }
+.calib-preview strong { color: var(--text-primary); }
+.sensor-item-actions { margin-top: 12px; }

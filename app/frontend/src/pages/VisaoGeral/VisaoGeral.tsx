@@ -4,6 +4,7 @@ import Header from '../../components/Header';
 import Card from '../../components/Card';
 import Table from '../../components/Table';
 import StatusBadge from '../../components/StatusBadge';
+import AlertList from '../../components/AlertList';
 import {
   HomeIcon,
   DropletIcon,
@@ -13,10 +14,15 @@ import {
   ListIcon,
   GridIcon,
   HealthyIcon,
+  WarningIcon,
+  CloudIcon,
+  CloudRainIcon,
+  SunIcon,
   ChevronDownIcon,
 } from '../../components/icons';
 import { usePlants, statusDaPlanta } from '../../context/PlantsContext';
-import { leiturasRecentes, historicoPorPeriodo } from '../../utils/mockData';
+import { gerarLeiturasRecentes, historicoPorPeriodo } from '../../utils/mockData';
+import { formatarLitros } from '../../utils/format';
 import './VisaoGeral.css';
 
 const PERIODOS = [
@@ -24,8 +30,10 @@ const PERIODOS = [
   { value: '7d', label: 'Últimos 7 dias' },
 ];
 
+const CONDICAO = { ensolarado: 'Ensolarado', parcial: 'Parcialmente nublado', nublado: 'Nublado', chuva: 'Chuva' } as const;
+
 export default function VisaoGeral({ openMenu }: { openMenu?: () => void }) {
-  const { plantas, irrigacaoEstado } = usePlants();
+  const { plantas, sensores, alertas, algumaIrrigando, irrigacoesAtivas, resumoConsumo, recomendacoes, clima, eficiencia } = usePlants();
   const [periodo, setPeriodo] = useState('24h');
   const [periodoOpen, setPeriodoOpen] = useState(false);
 
@@ -34,10 +42,18 @@ export default function VisaoGeral({ openMenu }: { openMenu?: () => void }) {
     [plantas]
   );
 
-  const alertas = useMemo(
-    () => plantas.filter((p) => statusDaPlanta(p) !== 'ideal'),
-    [plantas]
-  );
+  const criticas = useMemo(() => plantas.filter((p) => statusDaPlanta(p) === 'critico').length, [plantas]);
+  const emAtencao = useMemo(() => plantas.filter((p) => statusDaPlanta(p) === 'atencao').length, [plantas]);
+  const leituras = useMemo(() => gerarLeiturasRecentes(plantas, sensores), [plantas, sensores]);
+  const sensoresOffline = sensores.filter((s) => s.status === 'offline').length;
+  const sensoresOnline = sensores.length - sensoresOffline;
+
+  const saude =
+    criticas > 0
+      ? { nivel: 'critico', titulo: 'Horta em estado crítico', texto: `${criticas} planta(s) com umidade crítica.` }
+      : alertas.some((a) => a.severidade !== 'ideal')
+        ? { nivel: 'atencao', titulo: 'Horta requer atenção', texto: 'Há alertas que precisam ser verificados.' }
+        : { nivel: 'ok', titulo: 'Horta saudável', texto: 'Tudo funcionando normalmente.' };
 
   const dadosGrafico = historicoPorPeriodo[periodo === '24h' ? '24h' : '7d'];
 
@@ -51,13 +67,13 @@ export default function VisaoGeral({ openMenu }: { openMenu?: () => void }) {
       />
       <div className="page-body">
         <div className="vg-top-row">
-          <Card accent="success" className="vg-health-card">
-            <div className="vg-health-icon">
-              <HealthyIcon width={26} height={26} />
+          <Card accent={saude.nivel === 'ok' ? 'success' : 'default'} className="vg-health-card">
+            <div className={`vg-health-icon ${saude.nivel !== 'ok' ? `vg-health-icon-${saude.nivel}` : ''}`}>
+              {saude.nivel === 'ok' ? <HealthyIcon width={26} height={26} /> : <WarningIcon width={26} height={26} />}
             </div>
             <div>
-              <h2>Horta saudável</h2>
-              <p>Tudo funcionando normalmente.</p>
+              <h2>{saude.titulo}</h2>
+              <p>{saude.texto}</p>
             </div>
           </Card>
 
@@ -81,12 +97,12 @@ export default function VisaoGeral({ openMenu }: { openMenu?: () => void }) {
             <span className="vg-mini-label">
               <DropletIcon width={16} height={16} /> Irrigação
             </span>
-            <strong className={irrigacaoEstado === 'ligada' ? 'txt-ok' : ''}>
-              {irrigacaoEstado === 'ligada' ? 'Ativada' : 'Desativada'}
+            <strong className={algumaIrrigando ? 'txt-ok' : ''}>
+              {algumaIrrigando ? 'Ativada' : 'Desativada'}
             </strong>
             <span className="vg-mini-sub">
-              <span className={`dot ${irrigacaoEstado === 'ligada' ? 'dot-on' : 'dot-off'}`} />
-              {irrigacaoEstado === 'ligada' ? 'em andamento' : 'em espera'}
+              <span className={`dot ${algumaIrrigando ? 'dot-on' : 'dot-off'}`} />
+              {algumaIrrigando ? `${irrigacoesAtivas} em andamento` : 'em espera'}
             </span>
           </Card>
 
@@ -94,11 +110,38 @@ export default function VisaoGeral({ openMenu }: { openMenu?: () => void }) {
             <span className="vg-mini-label">
               <WifiIcon width={16} height={16} /> Sensores
             </span>
-            <strong className="txt-ok">Online</strong>
+            <strong className={sensoresOffline === 0 ? 'txt-ok' : ''}>{sensoresOffline === 0 ? 'Online' : `${sensoresOffline} offline`}</strong>
             <span className="vg-mini-sub">
-              <span className="dot dot-on" />
-              conectados
+              <span className={`dot ${sensoresOffline === 0 ? 'dot-on' : 'dot-off'}`} />
+              {sensoresOnline} de {sensores.length} conectados
             </span>
+          </Card>
+        </div>
+
+        <div className="vg-mid-row">
+          <Card title="Recomendações" icon={<LeafIcon width={18} height={18} />}>
+            {recomendacoes.length === 0 ? (
+              <div className="empty-state">
+                <HealthyIcon width={30} height={30} />
+                <strong>Nenhuma recomendação</strong>
+                <span>A horta está dentro do esperado.</span>
+              </div>
+            ) : (
+              <AlertList alertas={recomendacoes} />
+            )}
+          </Card>
+
+          <Card title="Previsão do tempo" icon={<CloudIcon width={18} height={18} />}>
+            <div className="weather-main">
+              {clima.condicao === 'chuva' ? <CloudRainIcon width={34} height={34} /> : clima.condicao === 'ensolarado' ? <SunIcon width={34} height={34} /> : <CloudIcon width={34} height={34} />}
+              <div>
+                <strong>{clima.temperaturaAtual}°C</strong>
+                <span>{CONDICAO[clima.condicao]}</span>
+              </div>
+            </div>
+            <div className="info-row"><span>Máxima / Mínima</span><strong>{clima.maxima}° / {clima.minima}°</strong></div>
+            <div className="info-row"><span>Probabilidade de chuva</span><strong>{clima.probabilidadeChuva}%</strong></div>
+            <div className="info-row"><span>Chuva prevista</span><strong>{clima.chuvaEmHoras === null ? 'Sem chuva' : `em ~${clima.chuvaEmHoras} h`}</strong></div>
           </Card>
         </div>
 
@@ -168,16 +211,10 @@ export default function VisaoGeral({ openMenu }: { openMenu?: () => void }) {
                 <span>Tudo funcionando normalmente.</span>
               </div>
             ) : (
-              <ul className="alert-list">
-                {alertas.map((p) => (
-                  <li key={p.id} className="alert-item">
-                    <StatusBadge status={statusDaPlanta(p)} />
-                    <span>
-                      <strong>{p.nome}</strong> está com {p.umidadeAtual}% de umidade (ideal {p.faixaMin}% - {p.faixaMax}%).
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              <>
+                <AlertList alertas={alertas} limite={8} />
+                {alertas.length > 8 && <small className="api-hint">+ {alertas.length - 8} alertas de menor prioridade</small>}
+              </>
             )}
           </Card>
         </div>
@@ -186,7 +223,7 @@ export default function VisaoGeral({ openMenu }: { openMenu?: () => void }) {
           <Card title="Últimas leituras" icon={<ListIcon width={18} height={18} />}>
             <Table
               rowKey={(r) => r.id}
-              rows={leiturasRecentes}
+              rows={leituras}
               columns={[
                 { key: 'planta', header: 'Planta', render: (r) => r.plantaNome },
                 { key: 'umidade', header: 'Umidade', render: (r) => `${r.umidade}%` },
@@ -216,14 +253,42 @@ export default function VisaoGeral({ openMenu }: { openMenu?: () => void }) {
                 <WifiIcon width={17} height={17} />
                 <div>
                   <span className="quick-label">Sensores online</span>
-                  <strong>{plantas.length}</strong>
+                  <strong>{sensoresOnline}</strong>
                 </div>
               </div>
               <div className="quick-item">
                 <DropletIcon width={17} height={17} />
                 <div>
                   <span className="quick-label">Irrigação</span>
-                  <strong>{irrigacaoEstado === 'ligada' ? 'Ativada' : 'Desativada'}</strong>
+                  <strong>{algumaIrrigando ? 'Ativada' : 'Desativada'}</strong>
+                </div>
+              </div>
+              <div className="quick-item">
+                <WarningIcon width={17} height={17} />
+                <div>
+                  <span className="quick-label">Plantas críticas</span>
+                  <strong>{criticas}</strong>
+                </div>
+              </div>
+              <div className="quick-item">
+                <WarningIcon width={17} height={17} />
+                <div>
+                  <span className="quick-label">Plantas em atenção</span>
+                  <strong>{emAtencao}</strong>
+                </div>
+              </div>
+              <div className="quick-item">
+                <DropletIcon width={17} height={17} />
+                <div>
+                  <span className="quick-label">Água economizada</span>
+                  <strong>{formatarLitros(resumoConsumo.economizada)}</strong>
+                </div>
+              </div>
+              <div className="quick-item">
+                <LeafIcon width={17} height={17} />
+                <div>
+                  <span className="quick-label">Eficiência da Ecotech</span>
+                  <strong title={`Principal ponto de melhoria: ${eficiencia.pontoFraco}`}>{eficiencia.indice}%</strong>
                 </div>
               </div>
             </div>

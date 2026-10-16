@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { ROTAS } from '../../routes/paths';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import Card from '../../components/Card';
@@ -82,7 +83,7 @@ export default function Configuracoes({ openMenu }: { openMenu?: () => void }) {
 
   const sair = () => {
     logout();
-    navigate('/login', { replace: true });
+    navigate(ROTAS.login, { replace: true });
   };
 
   return (

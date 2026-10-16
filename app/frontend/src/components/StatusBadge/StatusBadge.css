@@ -11,3 +11,4 @@
 .status-ideal { background: var(--status-ideal-bg); color: var(--status-ideal-fg); }
 .status-atencao { background: var(--status-atencao-bg); color: var(--status-atencao-fg); }
 .status-abaixo { background: var(--status-abaixo-bg); color: var(--status-abaixo-fg); }
+.status-critico { background: var(--status-abaixo-bg); color: var(--status-abaixo-fg); }

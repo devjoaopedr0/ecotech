@@ -18,21 +18,47 @@ import {
   InfoBoxIcon,
   CalendarIcon,
   ClockIcon,
+  ThermometerIcon,
 } from '../../components/icons';
 import { usePlants, statusDaPlanta } from '../../context/PlantsContext';
 import type { Plant } from '../../types';
+import CulturaCard from './CulturaCard';
+import FotosCard from './FotosCard';
+import { validarLimites } from '../../utils/umidade';
+import { formatarLitros } from '../../utils/format';
 import './Plantas.css';
 
 const ITEMS_PER_PAGE = 8;
 
+interface FormPlanta {
+  nome: string;
+  faixaMin: number;
+  faixaMax: number;
+  umidadeMinima: number;
+  umidadeMaxima: number;
+  umidadeCritica: number;
+  dataPlantio: string;
+}
+
+const formDe = (p?: Plant): FormPlanta => ({
+  nome: p?.nome ?? '',
+  faixaMin: p?.faixaMin ?? 0,
+  faixaMax: p?.faixaMax ?? 0,
+  umidadeMinima: p?.umidadeMinima ?? 0,
+  umidadeMaxima: p?.umidadeMaxima ?? 0,
+  umidadeCritica: p?.umidadeCritica ?? 0,
+  dataPlantio: p?.dataPlantio ?? '',
+});
+
 export default function Plantas({ openMenu }: { openMenu?: () => void }) {
-  const { plantas, atualizarPlanta, removerPlanta } = usePlants();
+  const { plantas, atualizarPlanta, removerPlanta, historicoIrrigacao, culturas, atualizarCultura, fotosDe, adicionarFoto, removerFoto } = usePlants();
   const [busca, setBusca] = useState('');
   const [pagina, setPagina] = useState(1);
   const [selecionadaId, setSelecionadaId] = useState<string>(plantas[0]?.id ?? '');
   const [excluirId, setExcluirId] = useState<string | null>(null);
 
-  const [form, setForm] = useState({ nome: '', faixaMin: 0, faixaMax: 0 });
+  const [form, setForm] = useState<FormPlanta>(() => formDe(plantas[0]));
+  const [erroForm, setErroForm] = useState('');
 
   const filtradas = useMemo(
     () => plantas.filter((p) => p.nome.toLowerCase().includes(busca.toLowerCase())),
@@ -47,31 +73,36 @@ export default function Plantas({ openMenu }: { openMenu?: () => void }) {
 
   const abrirEdicao = (p: Plant) => {
     setSelecionadaId(p.id);
-    setForm({ nome: p.nome, faixaMin: p.faixaMin, faixaMax: p.faixaMax });
+    setForm(formDe(p));
+    setErroForm('');
   };
 
-  const linhaSelecionada = (p: Plant) => {
-    setSelecionadaId(p.id);
-    setForm({ nome: p.nome, faixaMin: p.faixaMin, faixaMax: p.faixaMax });
-  };
+  const linhaSelecionada = abrirEdicao;
 
   const salvar = (e: FormEvent) => {
     e.preventDefault();
     if (!selecionada) return;
-    if (form.faixaMin >= form.faixaMax) {
-      alert('A faixa mínima deve ser menor que a faixa máxima.');
+    const erro = validarLimites(form);
+    if (erro) {
+      setErroForm(erro);
       return;
     }
+    setErroForm('');
     atualizarPlanta(selecionada.id, {
       nome: form.nome.trim() || selecionada.nome,
       faixaMin: form.faixaMin,
       faixaMax: form.faixaMax,
+      umidadeMinima: form.umidadeMinima,
+      umidadeMaxima: form.umidadeMaxima,
+      umidadeCritica: form.umidadeCritica,
+      dataPlantio: form.dataPlantio || selecionada.dataPlantio,
     });
   };
 
   const cancelar = () => {
     if (!selecionada) return;
-    setForm({ nome: selecionada.nome, faixaMin: selecionada.faixaMin, faixaMax: selecionada.faixaMax });
+    setForm(formDe(selecionada));
+    setErroForm('');
   };
 
   const confirmarExclusao = () => {
@@ -126,6 +157,7 @@ export default function Plantas({ openMenu }: { openMenu?: () => void }) {
                 },
                 { key: 'umidade', header: 'Umidade atual', render: (p) => `${p.umidadeAtual}%` },
                 { key: 'faixa', header: 'Faixa ideal', render: (p) => `${p.faixaMin}% - ${p.faixaMax}%` },
+                { key: 'critica', header: 'Umid. crítica', render: (p) => `${p.umidadeCritica}%` },
                 { key: 'status', header: 'Status', render: (p) => <StatusBadge status={statusDaPlanta(p)} /> },
                 {
                   key: 'acoes',
@@ -172,6 +204,11 @@ export default function Plantas({ openMenu }: { openMenu?: () => void }) {
                       Faixa ideal de umidade
                       <strong>{selecionada.faixaMin}% - {selecionada.faixaMax}%</strong>
                     </div>
+                    <div className="plant-preview-range">
+                      <DropletIcon width={14} height={14} />
+                      Umidade crítica
+                      <strong>{selecionada.umidadeCritica}%</strong>
+                    </div>
                   </div>
                 </Card>
 
@@ -202,6 +239,53 @@ export default function Plantas({ openMenu }: { openMenu?: () => void }) {
                         />
                       </div>
                     </div>
+                    <div className="range-fields">
+                      <span className="range-label">Umidade mínima / máxima</span>
+                      <div className="range-inputs">
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          aria-label="Umidade mínima"
+                          value={form.umidadeMinima}
+                          onChange={(e) => setForm((f) => ({ ...f, umidadeMinima: Number(e.target.value) }))}
+                        />
+                        <span>-</span>
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          aria-label="Umidade máxima"
+                          value={form.umidadeMaxima}
+                          onChange={(e) => setForm((f) => ({ ...f, umidadeMaxima: Number(e.target.value) }))}
+                        />
+                      </div>
+                    </div>
+                    <div className="range-fields">
+                      <span className="range-label">Umidade crítica</span>
+                      <div className="range-inputs">
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          aria-label="Umidade crítica"
+                          value={form.umidadeCritica}
+                          onChange={(e) => setForm((f) => ({ ...f, umidadeCritica: Number(e.target.value) }))}
+                        />
+                      </div>
+                    </div>
+                    <div className="range-fields">
+                      <span className="range-label">Data de plantio</span>
+                      <div className="range-inputs">
+                        <input
+                          type="date"
+                          aria-label="Data de plantio"
+                          value={form.dataPlantio}
+                          onChange={(e) => setForm((f) => ({ ...f, dataPlantio: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                    {erroForm && <p className="login-error">{erroForm}</p>}
                     <div className="edit-form-actions">
                       <Button type="button" variant="ghost" fullWidth onClick={cancelar}>
                         Cancelar
@@ -217,6 +301,11 @@ export default function Plantas({ openMenu }: { openMenu?: () => void }) {
                   <div className="info-grid info-grid-1col">
                     <div className="info-row"><span><CalendarIcon width={15} height={15} /> Data de cadastro</span><strong>{selecionada.dataCadastro}</strong></div>
                     <div className="info-row"><span><ClockIcon width={15} height={15} /> Última irrigação</span><strong>{selecionada.ultimaIrrigacao}</strong></div>
+                    <div className="info-row"><span><DropletIcon width={15} height={15} /> Umidade atual</span><strong>{selecionada.umidadeAtual}%</strong></div>
+                    <div className="info-row"><span><DropletIcon width={15} height={15} /> Mínima / Máxima</span><strong>{selecionada.umidadeMinima}% / {selecionada.umidadeMaxima}%</strong></div>
+                    <div className="info-row"><span><DropletIcon width={15} height={15} /> Umidade crítica</span><strong>{selecionada.umidadeCritica}%</strong></div>
+                    <div className="info-row"><span><ThermometerIcon width={15} height={15} /> Temperatura</span><strong>{selecionada.temperatura.toFixed(1)}°C</strong></div>
+                    <div className="info-row"><span><DropletIcon width={15} height={15} /> Consumo de água</span><strong>{formatarLitros(historicoIrrigacao.filter((r) => r.plantaId === selecionada.id).reduce((a, r) => a + r.litros, 0))}</strong></div>
                     <div className="info-row"><span><LeafIcon width={15} height={15} /> Status da planta</span><StatusBadge status={statusDaPlanta(selecionada)} /></div>
                   </div>
                 </Card>
@@ -224,6 +313,20 @@ export default function Plantas({ openMenu }: { openMenu?: () => void }) {
             )}
           </div>
         </div>
+
+        {selecionada && culturas[selecionada.culturaId] && (
+          <div className="plantas-extra">
+            <CulturaCard key={selecionada.culturaId} cultura={culturas[selecionada.culturaId]} onSalvar={(d) => atualizarCultura(selecionada.culturaId, d)} />
+            <FotosCard
+              key={selecionada.id}
+              nome={selecionada.nome}
+              plantioMs={selecionada.dataPlantio ? new Date(`${selecionada.dataPlantio}T00:00:00`).getTime() : null}
+              fotos={fotosDe(selecionada.id)}
+              onAdicionar={(src) => src && adicionarFoto(selecionada.id, src)}
+              onRemover={(id) => removerFoto(selecionada.id, id)}
+            />
+          </div>
+        )}
       </div>
 
       <Modal open={!!excluirId} onClose={() => setExcluirId(null)} title="Excluir planta" width={380}>

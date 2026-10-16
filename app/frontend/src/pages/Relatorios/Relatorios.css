@@ -1,0 +1,16 @@
+.rel-row { display: grid; grid-template-columns: 1fr 1.4fr; gap: 18px; }
+.rel-range { font-size: 14px; color: var(--text-secondary); }
+.rel-custom { display: flex; gap: 16px; flex-wrap: wrap; }
+.rel-custom label { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; color: var(--text-muted); }
+.rel-custom input {
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 8px 10px;
+  font: inherit;
+  color-scheme: dark light;
+}
+@media (max-width: 900px) { .rel-row { grid-template-columns: 1fr; } }
+.info-grid-1col { grid-template-columns: 1fr; }
+.rel-actions { display: flex; gap: 10px; flex-wrap: wrap; }
