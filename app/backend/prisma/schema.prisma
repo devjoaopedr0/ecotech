@@ -1,0 +1,186 @@
+// Banco novo do EcoTech. Modelado a partir das funcionalidades descritas em
+// docs/ANALISE_E_ROADMAP.md (seção 2); nada do schema legado é reaproveitado.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum IrrigationMode {
+  AUTO
+  MANUAL
+}
+
+enum IrrigationSource {
+  MANUAL
+  AUTO
+}
+
+enum AlertType {
+  LOW
+  HIGH
+}
+
+model User {
+  id             String   @id @default(uuid()) @db.Uuid
+  name           String
+  email          String   @unique
+  passwordHash   String   @map("password_hash")
+  role           UserRole @default(USER)
+  /// Incrementado ao trocar a senha: invalida todos os tokens já emitidos.
+  sessionVersion Int      @default(0) @map("session_version")
+  lastLogin      DateTime? @map("last_login")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  plants                 Plant[]
+  devices                Device[]
+  alerts                 Alert[]
+  notificationPreference NotificationPreference?
+
+  @@map("users")
+}
+
+/// Base de referência de plantas (nome popular, científico e faixa ideal de
+/// umidade do solo). Carregada pelo seed; usada no autocomplete do cadastro.
+model PlantCatalog {
+  id             String   @id @default(uuid()) @db.Uuid
+  popularName    String   @unique @map("popular_name")
+  scientificName String   @map("scientific_name")
+  humidityMin    Int      @map("humidity_min")
+  humidityMax    Int      @map("humidity_max")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  plants Plant[]
+
+  @@map("plant_catalog")
+}
+
+model Plant {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  catalogPlantId String?  @map("catalog_plant_id") @db.Uuid
+  name           String
+  species        String?
+  emoji          String   @default("🌱")
+  location       String?
+  /// Faixa ideal de umidade do solo, em % (min < max).
+  humidityMin    Int      @map("humidity_min")
+  humidityMax    Int      @map("humidity_max")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  catalogPlant       PlantCatalog?       @relation(fields: [catalogPlantId], references: [id], onDelete: SetNull)
+  devices            Device[]
+  readings           Reading[]
+  irrigationEvents   IrrigationEvent[]
+  irrigationSettings IrrigationSettings?
+  alerts             Alert[]
+
+  @@index([userId])
+  @@map("plants")
+}
+
+/// Sensor (ESP32). Autentica no `POST /readings` com um token próprio, do
+/// qual só o hash SHA-256 é guardado; o token em si é exibido uma única vez.
+model Device {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  plantId    String?   @map("plant_id") @db.Uuid
+  name       String
+  macAddress String?   @unique @map("mac_address")
+  location   String?
+  active     Boolean   @default(true)
+  tokenHash  String    @unique @map("token_hash")
+  lastSeenAt DateTime? @map("last_seen_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plant    Plant?    @relation(fields: [plantId], references: [id], onDelete: SetNull)
+  readings Reading[]
+
+  @@index([userId])
+  @@map("devices")
+}
+
+model Reading {
+  id        String   @id @default(uuid()) @db.Uuid
+  plantId   String   @map("plant_id") @db.Uuid
+  deviceId  String?  @map("device_id") @db.Uuid
+  /// Umidade do solo em % (0–100).
+  humidity  Decimal  @db.Decimal(5, 2)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  plant  Plant   @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  device Device? @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+
+  @@index([plantId, createdAt])
+  @@map("readings")
+}
+
+/// Estado da irrigação de uma planta. Criado sob demanda (padrão: MANUAL,
+/// desligada).
+model IrrigationSettings {
+  plantId   String         @id @map("plant_id") @db.Uuid
+  mode      IrrigationMode @default(MANUAL)
+  isOn      Boolean        @default(false) @map("is_on")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+
+  plant Plant @relation(fields: [plantId], references: [id], onDelete: Cascade)
+
+  @@map("irrigation_settings")
+}
+
+/// Um ciclo de irrigação: aberto ao ligar, `endedAt` preenchido ao desligar.
+model IrrigationEvent {
+  id        String           @id @default(uuid()) @db.Uuid
+  plantId   String           @map("plant_id") @db.Uuid
+  source    IrrigationSource
+  startedAt DateTime         @default(now()) @map("started_at")
+  endedAt   DateTime?        @map("ended_at")
+
+  plant Plant @relation(fields: [plantId], references: [id], onDelete: Cascade)
+
+  @@index([plantId, startedAt])
+  @@map("irrigation_events")
+}
+
+model NotificationPreference {
+  userId    String   @id @map("user_id") @db.Uuid
+  garden    Boolean  @default(true)
+  email     Boolean  @default(false)
+  system    Boolean  @default(true)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+/// Gerado quando uma leitura sai da faixa ideal da planta. Enquanto houver um
+/// alerta não lido do mesmo tipo para a planta, nenhum novo é criado.
+model Alert {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  plantId   String    @map("plant_id") @db.Uuid
+  type      AlertType
+  humidity  Decimal   @db.Decimal(5, 2)
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plant Plant @relation(fields: [plantId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("alerts")
+}

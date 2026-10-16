@@ -95,8 +95,8 @@ O `app_postgres.py` é uma segunda versão, que nunca foi integrada ao `main.py`
 ## 5. O que implementar
 
 ### 5.1 Backend (`app/backend`) — NestJS + Prisma
-- [ ] **Scaffold**, copiando da LUMINA: `config/` (validação de env), `database/` (PrismaService com adapter-pg), `common/` (filtro de exceções, `@CurrentUser`, rate-limit), Swagger e o `docker-compose.yml` do Postgres.
-- [ ] **Schema Prisma novo**, modelado a partir das funcionalidades da seção 2, sem reaproveitar as tabelas do legado. Proposta inicial:
+- [x] **Scaffold**, copiando da LUMINA: `config/` (validação de env), `database/` (PrismaService com adapter-pg), `common/` (filtro de exceções, `@CurrentUser`, rate-limit), Swagger e o `docker-compose.yml` do Postgres.
+- [x] **Schema Prisma novo**, modelado a partir das funcionalidades da seção 2, sem reaproveitar as tabelas do legado. Proposta inicial:
   - `User` (nome, email único, `passwordHash`, papel)
   - `Plant` (userId, nome, espécie, emoji, local, `humidityMin`, `humidityMax`, `catalogPlantId?`)
   - `PlantCatalog` (catálogo de referência, carregado por **seed** próprio. A lista do `plantas.py` pode servir de ponto de partida, mas tem duplicatas, como Girassol, Coentro e Sálvia, e as faixas precisam ser revisadas)
@@ -105,14 +105,14 @@ O `app_postgres.py` é uma segunda versão, que nunca foi integrada ao `main.py`
   - `IrrigationEvent` (plantId, início, fim, origem: `manual | auto`)
   - `IrrigationSettings` por planta ou dispositivo (modo `auto|manual`, estado)
   - `NotificationPreference` (horta, email, sistema) e `Alert` (planta, tipo baixo/alto, lido)
-- [ ] **Módulo `auth`**: register, login, `me`, refresh, change-password, com bcrypt e JWT, igual à LUMINA.
-- [ ] **Módulo `plants`**: CRUD que sempre filtra pelo usuário do JWT, nunca por um id vindo na URL.
-- [ ] **Módulo `catalog`**: `GET /catalog?q=` e paginação.
-- [ ] **Módulo `devices`**: cadastro do sensor, que gera um **token de dispositivo** (exibido uma única vez) e o vincula a uma planta.
-- [ ] **Ingestão de leituras**: `POST /readings`, autenticado pelo token do dispositivo, com corpo `{ umidade }`. A resposta já informa o **comando de irrigação** (ligar/desligar), conforme o modo e a faixa ideal.
-- [ ] **Consultas de leitura**: última leitura por planta, histórico por período (`6h|12h|24h|7d`, com agregação por bucket) e estatísticas (média, mín, máx, amplitude, tendência).
-- [ ] **Módulo `irrigation`**: `POST /plants/:id/irrigation` (ligar/desligar), `PATCH` do modo, histórico de eventos e a regra do modo automático (liga abaixo do mínimo e desliga ao chegar à faixa).
-- [ ] **Alertas**: gerados quando a leitura sai da faixa, com `GET /alerts` e marcação de lido. O e-mail pode reaproveitar o `mailer` da LUMINA.
+- [x] **Módulo `auth`**: register, login, `me`, refresh, change-password, com bcrypt e JWT, igual à LUMINA.
+- [x] **Módulo `plants`**: CRUD que sempre filtra pelo usuário do JWT, nunca por um id vindo na URL.
+- [x] **Módulo `catalog`**: `GET /catalog?q=` e paginação.
+- [x] **Módulo `devices`**: cadastro do sensor, que gera um **token de dispositivo** (exibido uma única vez) e o vincula a uma planta.
+- [x] **Ingestão de leituras**: `POST /readings`, autenticado pelo token do dispositivo, com corpo `{ umidade }`. A resposta já informa o **comando de irrigação** (ligar/desligar), conforme o modo e a faixa ideal.
+- [x] **Consultas de leitura**: última leitura por planta, histórico por período (`6h|12h|24h|7d`, com agregação por bucket) e estatísticas (média, mín, máx, amplitude, tendência).
+- [x] **Módulo `irrigation`**: `POST /plants/:id/irrigation` (ligar/desligar), `PATCH` do modo, histórico de eventos e a regra do modo automático (liga abaixo do mínimo e desliga ao chegar à faixa).
+- [x] **Alertas**: gerados quando a leitura sai da faixa, com `GET /alerts` e marcação de lido. Falta o envio por e-mail, que pode reaproveitar o `mailer` da LUMINA.
 - [ ] **Relatórios**: exportação em CSV e PDF.
 - [ ] **Tempo real** (opcional nesta fase): SSE ou WebSocket para as leituras novas; começar com polling.
 - ~~Migração de dados do legado~~: não será feita. O banco é novo e os usuários criam conta de novo.
@@ -137,7 +137,7 @@ O `app_postgres.py` é uma segunda versão, que nunca foi integrada ao `main.py`
 - [ ] Documentar o esquemático, a lista de componentes e a pinagem em `hardware-firmware/hardware/`.
 
 ### 5.4 Infra
-- [ ] `docker-compose` com Postgres para desenvolvimento.
+- [x] `docker-compose` com Postgres para desenvolvimento.
 - [ ] Deploy: front na Vercel (como a landing page) e API e Postgres num serviço gerenciado.
 - [ ] CI com typecheck, lint, testes e build para o front e o back.
 
