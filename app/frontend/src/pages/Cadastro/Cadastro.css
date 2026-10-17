@@ -1,0 +1,72 @@
+.cadastro-page { padding-top: 40px; padding-bottom: 40px; }
+.cadastro-card { gap: 22px; }
+
+.cadastro-header { display: flex; flex-direction: column; gap: 6px; }
+.cadastro-title { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.3px; color: var(--text-primary); }
+.cadastro-subtitle { margin: 0; font-size: 14px; color: var(--text-secondary); }
+
+.cadastro-quiz {
+  margin: 0;
+  padding: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.cadastro-quiz-pergunta {
+  padding: 0;
+  margin-bottom: 10px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.cadastro-quiz-opcoes { display: flex; flex-direction: column; gap: 10px; }
+
+.cadastro-opcao {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.cadastro-opcao:hover { border-color: var(--border-glow); }
+.cadastro-opcao input { position: absolute; opacity: 0; pointer-events: none; }
+.cadastro-opcao:focus-within { border-color: var(--border-glow); }
+.cadastro-opcao-ativa {
+  border-color: var(--accent-green);
+  background: color-mix(in srgb, var(--accent-green) 10%, var(--bg-input));
+}
+.cadastro-quiz[aria-invalid='true'] .cadastro-opcao { border-color: var(--status-abaixo-fg); }
+
+.cadastro-opcao-check {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #052013;
+}
+.cadastro-opcao-ativa .cadastro-opcao-check {
+  border-color: var(--accent-green);
+  background: var(--accent-green);
+}
+.cadastro-opcao-texto { display: flex; flex-direction: column; gap: 2px; }
+.cadastro-opcao-titulo { font-size: 14.5px; font-weight: 700; color: var(--text-primary); }
+.cadastro-opcao-desc { font-size: 12.5px; color: var(--text-secondary); }
+
+.cadastro-rodape { margin: 0; text-align: center; font-size: 13.5px; color: var(--text-secondary); }
+.cadastro-rodape a { color: var(--accent-blue); font-weight: 600; text-decoration: none; }
+.cadastro-rodape a:hover { text-decoration: underline; }
+
+@media (max-width: 520px) {
+  .cadastro-page { padding-top: 28px; padding-bottom: 28px; }
+  .cadastro-title { font-size: 22px; }
+}

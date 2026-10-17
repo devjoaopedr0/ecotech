@@ -78,6 +78,19 @@
   font-size: 13.5px;
 }
 
+.login-success {
+  margin: 0;
+  color: var(--status-ideal-fg);
+  background: var(--status-ideal-bg);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13.5px;
+}
+
+.login-rodape { margin: 0; text-align: center; font-size: 13.5px; color: var(--text-secondary); }
+.login-rodape a { color: var(--accent-blue); font-weight: 600; text-decoration: none; }
+.login-rodape a:hover { text-decoration: underline; }
+
 .login-submit {
   display: flex;
   align-items: center;
@@ -117,6 +130,7 @@
   .login-fields .input-wrap input { padding: 9px 0; }
   .login-fields .input-icon { display: none; }
   .login-checkbox { display: none; }
+  .login-rodape, .login-success { display: none; }
   .login-error { padding: 6px 8px; font-size: 11.5px; }
   .login-submit { padding: 11px; font-size: 14px; border-radius: 999px; }
 }

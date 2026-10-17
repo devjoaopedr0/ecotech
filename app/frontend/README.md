@@ -9,11 +9,14 @@ Feito com **React 19 + TypeScript + Vite**. Funciona de dois jeitos:
 | **API** | `VITE_API_URL` definido no `.env` | Do [backend](../backend/README.md). Login real, dados persistidos, irrigação decidida pelo servidor |
 | **Simulado** | Sem `VITE_API_URL` | De `src/utils/mockData.ts`. Qualquer login entra e a irrigação é simulada no navegador |
 
+> 📜 O histórico de alterações, commit a commit, está em [CHANGELOG.md](CHANGELOG.md).
+
 ## Telas
 
 | Tela | O que faz |
 | --- | --- |
-| **Login** | Entrada com e-mail e senha |
+| **Login** | Entrada com e-mail e senha, e link para o cadastro |
+| **Cadastro** | Criação de conta com nome, e-mail, usuário, senha e um questionário sobre o nível de conhecimento em tecnologia (envio ainda simulado, veja [Cadastro e questionário](#-cadastro-e-questionário)) |
 | **Visão Geral** | Saúde da horta, umidade atual, alertas, recomendações, previsão do tempo e eficiência |
 | **Dashboard** | Gráficos, consumo e economia de água, e relatório de irrigação em CSV |
 | **Monitor** | Uma planta por vez: umidade, previsão, saúde, colheita e controles de irrigação (ligar/desligar, automático/manual, duração) |
@@ -166,7 +169,7 @@ Regras em funções puras, em `src/utils/analise.ts`:
 src/
 ├── api/          # comunicação com o backend (ver abaixo)
 ├── routes/       # navegação (ver abaixo)
-├── pages/        # Login, VisaoGeral, Dashboard, Monitor, Relatorios, Sensores, Plantas, Configuracoes, Watch
+├── pages/        # Login, Cadastro, VisaoGeral, Dashboard, Monitor, Relatorios, Sensores, Plantas, Configuracoes, Watch
 ├── components/   # Button, Card, Modal, Table, Input, Sidebar, Header, AlertList, ícones…
 ├── layouts/      # MainLayout (Sidebar + conteúdo)
 ├── context/      # AuthContext, ThemeContext e PlantsContext (estado da horta)
@@ -201,8 +204,46 @@ src/routes/
 - **Novo endpoint:** declare em `api/endpoints.ts`, o tipo da resposta em `api/dto.ts`, o método em `api/types.ts`, a conversão em `api/mappers.ts`, e implemente em `ecotechApi.http.ts` e `ecotechApi.mock.ts`.
 - `App.tsx` só monta os providers e o `AppRoutes`.
 
+## 📝 Cadastro e questionário
+
+Tela pública em `/cadastro`, acessível pelo link **Cadastre-se** no login. Não existe na versão do Apple Watch.
+
+- **Campos:** nome completo, e-mail, usuário, senha e confirmar senha.
+- **Questionário:** *"Qual é o seu nível de conhecimento em tecnologia?"*, com as opções **Muito**, **Médio** e **Pouco**, exibidas como cartões selecionáveis (radio buttons acessíveis por teclado).
+- **Envio:** ainda simulado, nos dois modos. A tela não chama `POST /auth/register`: os dados não são salvos e o usuário volta ao login com a mensagem *"Cadastro realizado!"*. No modo API, por enquanto, a conta é criada pelo Swagger.
+
+### Validação (estruturada, mas desativada)
+
+Hoje **nada é validado**, mas toda a estrutura já existe em `src/pages/Cadastro/cadastroValidation.ts`:
+
+| Item | Função |
+| --- | --- |
+| `OPCOES_CONHECIMENTO` | Opções do questionário (valor, título e descrição) |
+| `regras` | Regras prontas e reutilizáveis: `obrigatorio`, `email`, `minCaracteres`, `igualA` e `umaDasOpcoes` |
+| `regrasCadastro` | Lista de regras de cada campo (**hoje todas vazias**) |
+| `validarCadastro(form)` | Executa as regras e retorna o primeiro erro de cada campo |
+| `temErros(erros)` | Indica se algum campo tem erro |
+
+A tela já chama `validarCadastro` no envio: se houver erros, o envio é bloqueado, a mensagem aparece abaixo do campo (prop `error` do componente `Input`) e a borda fica vermelha. O erro some quando o usuário edita o campo. Para ativar, basta preencher as listas (a senha segue a regra do backend, de 8 a 72 caracteres):
+
+```ts
+export const regrasCadastro: Record<CampoCadastro, Regra[]> = {
+  nome: [regras.obrigatorio('Informe seu nome.')],
+  email: [regras.obrigatorio(), regras.email()],
+  usuario: [regras.obrigatorio()],
+  senha: [regras.obrigatorio(), regras.minCaracteres(8)],
+  confirmarSenha: [regras.igualA('senha', 'As senhas não conferem.')],
+  nivelConhecimento: [regras.umaDasOpcoes(OPCOES_CONHECIMENTO.map((o) => o.valor))],
+};
+```
+
+Uma regra nova é só uma função `(valor, form) => string | undefined` (a mensagem de erro, ou `undefined` se estiver ok).
+
+**Arquivos envolvidos:** `src/pages/Cadastro/` (tela, CSS e validação), `src/types/index.ts` (`CadastroForm`, `NivelConhecimentoTecnologia`), `src/routes/paths.ts` (`ROTAS.cadastro`), `src/routes/AppRoutes.tsx` (rota pública), `src/components/Input/` (prop `error`) e `src/pages/Login/` (link e mensagem de sucesso).
+
 ## 🔜 Próximos passos
 
+- Ligar o cadastro ao backend (`POST /auth/register`) e ativar as regras de validação. O backend ainda não guarda o usuário (login) nem o nível de conhecimento: entram só nome, e-mail e senha.
 - Gráfico do Monitor com o histórico real (`GET /plants/:id/readings/history`).
 - Mostrar no sino os alertas gravados pelo backend (`GET /alerts`) e marcá-los como lidos.
 - Telas de cadastro de planta e de placa (hoje só pelo Swagger).
