@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ROTAS } from '../../routes/paths';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../../components/Input';
 import { UserCircleIcon, LockIcon, EyeIcon, EyeOffIcon, ArrowRightIcon } from '../../components/icons';
@@ -14,6 +14,7 @@ export default function Login() {
   const [carregando, setCarregando] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const cadastroRealizado = (useLocation().state as { cadastroRealizado?: boolean } | null)?.cadastroRealizado;
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -97,12 +98,17 @@ export default function Login() {
           </label>
         </div>
 
+        {cadastroRealizado && !erro && <p className="login-success">Cadastro realizado! Entre com seu usuário e senha.</p>}
         {erro && <p className="login-error">{erro}</p>}
 
         <button type="submit" className="login-submit" disabled={carregando}>
           {carregando ? 'Entrando…' : 'Entrar'}
           {!carregando && <ArrowRightIcon width={18} height={18} />}
         </button>
+
+        <p className="login-rodape">
+          Não tem uma conta? <Link to={ROTAS.cadastro}>Cadastre-se</Link>
+        </p>
       </form>
     </div>
   );
