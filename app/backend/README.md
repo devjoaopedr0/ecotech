@@ -1,10 +1,12 @@
 # Backend
 
-API do EcoTech: contas, plantas, sensores (ESP32), leituras de umidade, irrigação e alertas.
+API do EcoTech: contas, plantas, culturas, placas (ESP32/Arduino), leituras, irrigação, alertas e relatórios de água.
 
-**Stack:** NestJS 11, Prisma 7 (`@prisma/adapter-pg`), PostgreSQL, JWT (access + refresh), bcrypt, Swagger e Vitest. É a mesma base da LUMINA.
+**Stack:** NestJS 11, Prisma 7 (`@prisma/adapter-pg`), PostgreSQL 17, JWT (access + refresh), bcrypt, Swagger e Vitest. É a mesma base da LUMINA.
 
 ## Como rodar
+
+Pré-requisitos: **Node.js 20.19+, 22.12+ ou 24+** (exigência do Prisma 7) e **Docker** (ou um PostgreSQL próprio, ajustando `DATABASE_URL`).
 
 ```bash
 cp .env.example .env          # preencha JWT_SECRET e JWT_REFRESH_SECRET
@@ -15,7 +17,49 @@ npm run prisma:seed           # carrega o catálogo de plantas
 npm run start:dev             # http://localhost:3333 (Swagger em /docs)
 ```
 
-Testes: `npm test`. São testes unitários das regras de umidade e um e2e que sobe a aplicação inteira com um Prisma em memória, sem precisar de banco.
+Para gerar os segredos do JWT: `openssl rand -hex 32` (um para cada variável).
+
+### Variáveis de ambiente
+
+A API valida o `.env` ao subir e não inicia se faltar algo obrigatório (`src/config/env.validation.ts`).
+
+| Variável | Obrigatória | Padrão no `.env.example` | Para quê |
+|---|---|---|---|
+| `DATABASE_URL` | sim | Postgres do `docker-compose.yml` | Conexão com o banco |
+| `PORT` | sim | `3333` | Porta da API |
+| `CORS_ORIGIN` | sim | `http://localhost:5173` | Origens liberadas, separadas por vírgula |
+| `JWT_SECRET` / `JWT_REFRESH_SECRET` | sim | (vazio) | Segredos dos tokens, com pelo menos 16 caracteres e diferentes entre si |
+| `JWT_EXPIRES_IN` / `JWT_REFRESH_EXPIRES_IN` | sim | `15m` / `7d` | Validade do access e do refresh token |
+| `RATE_LIMIT_TTL_MS` / `RATE_LIMIT_MAX` | não | `60000` / `300` | Limite de requisições por IP na janela |
+| `WATER_TARIFF_PER_M3` | não | `6.48` | Tarifa de água (R$/m³) usada nos relatórios |
+
+### Scripts
+
+| Comando | O que faz |
+|---|---|
+| `npm run start:dev` | Compila e sobe com recarga automática |
+| `npm run build` / `npm start` | Compila para `dist/` e roda a versão compilada |
+| `npm test` | Testes unitários e e2e |
+| `npm run typecheck` | Checa os tipos sem gerar arquivos |
+| `npm run prisma:migrate:dev` | Cria uma migration nova a partir do `schema.prisma` (desenvolvimento) |
+| `npm run prisma:migrate:deploy` | Aplica as migrations pendentes |
+| `npm run prisma:studio` | Abre o Prisma Studio para ver os dados |
+
+### Testes
+
+`npm test` roda os testes unitários das regras de `src/domain` e um e2e (`test/app.e2e-spec.ts`) que sobe a aplicação inteira com um Prisma em memória (`test/fake-prisma.ts`), sem precisar de banco. Como o fake não executa SQL, as migrations só são validadas rodando `prisma:migrate:deploy` num Postgres de verdade.
+
+### Testar uma leitura sem placa
+
+Com uma placa criada em `POST /devices` (o `token` vem na resposta):
+
+```bash
+curl -X POST http://localhost:3333/readings \
+  -H "X-Device-Token: etk_..." -H "Content-Type: application/json" \
+  -d '{"rawValue": 2240, "temperature": 26.4}'
+```
+
+O contrato completo com a placa está no [README do firmware](../../hardware-firmware/firmware/README.md).
 
 ## Estrutura
 

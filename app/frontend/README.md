@@ -1,251 +1,209 @@
+# 🌿 EcoTech: painel web
 
-# 🌿 Ecotech Solutions — Sistema de Irrigação Inteligente
+Painel para monitorar e controlar a irrigação de uma horta. Sensores medem a umidade do solo de cada planta, e o painel mostra esses dados, avisa quando alguma planta precisa de atenção e permite ligar e desligar a irrigação, no modo automático ou no manual.
 
-## 📖 Sobre o projeto
+Feito com **React 19 + TypeScript + Vite**. Funciona de dois jeitos:
 
-O **Ecotech Solutions** é um sistema web para monitorar e controlar a irrigação de uma horta ou jardim de forma inteligente. A ideia é simples: sensores (reais ou simulados) medem a umidade do solo de cada planta, e o sistema mostra esses dados em telas claras, avisa quando alguma planta precisa de atenção e permite ligar/desligar a irrigação — automática ou manualmente.
+| Modo | Quando | De onde vêm os dados |
+|---|---|---|
+| **API** | `VITE_API_URL` definido no `.env` | Do [backend](../backend/README.md). Login real, dados persistidos, irrigação decidida pelo servidor |
+| **Simulado** | Sem `VITE_API_URL` | De `src/utils/mockData.ts`. Qualquer login entra e a irrigação é simulada no navegador |
 
-Este repositório contém **apenas o front-end** (a interface visual e a lógica de tela), construído em **React + TypeScript + Vite**. Hoje os dados de exemplo (plantas, histórico de umidade, leituras) são simulados dentro do próprio projeto, prontos para no futuro serem conectados a uma API real através da variável `VITE_API_URL`.
-
-### Telas do sistema
+## Telas
 
 | Tela | O que faz |
 | --- | --- |
-| **Login** | Tela de entrada do sistema, com usuário e senha |
-| **Visão Geral** | Resumo rápido: saúde da horta, umidade atual, alertas e últimas leituras |
-| **Dashboard** | Gráficos, estatísticas e geração de relatório de irrigação (CSV) |
-| **Monitor** | Acompanhamento em tempo real de uma planta específica, com controles de irrigação (ligar, desligar, automático, manual) |
-| **Relatórios** | Consumo, economia, irrigações, umidade média, plantas críticas, alertas e sensores — filtros Hoje, 7 dias, 30 dias e Personalizado |
-| **Sensores** | Lista de sensores (umidade, temperatura, luminosidade, nível da água) com status, valor atual, localização e última atualização |
-| **Plantas** | Lista de todas as plantas cadastradas, com busca, edição da faixa ideal de umidade e exclusão |
-| **Configurações** | Tema claro/escuro, dados do perfil, troca de senha, notificações e logout |
+| **Login** | Entrada com e-mail e senha |
+| **Visão Geral** | Saúde da horta, umidade atual, alertas, recomendações, previsão do tempo e eficiência |
+| **Dashboard** | Gráficos, consumo e economia de água, e relatório de irrigação em CSV |
+| **Monitor** | Uma planta por vez: umidade, previsão, saúde, colheita e controles de irrigação (ligar/desligar, automático/manual, duração) |
+| **Relatórios** | Consumo, economia, irrigações, umidade média, plantas críticas, alertas e sensores, com filtros Hoje, 7 dias, 30 dias e Personalizado. Inclui a coleta de dados com exportação em CSV |
+| **Sensores** | Sensores de umidade, temperatura, luminosidade, nível da água, temperatura foliar e umidade do ar, com status e calibração |
+| **Plantas** | Busca, edição dos limites de umidade e da data de plantio, culturas, fotos e exclusão |
+| **Configurações** | Tema claro/escuro, perfil, troca de senha, notificações e logout |
+| **Apple Watch** | Em telas de relógio, o app mostra só o login e o controle de irrigação |
 
-### Tecnologias utilizadas
+## Tecnologias
 
-- **Vite** — build e servidor de desenvolvimento
-- **React 19** — biblioteca de interface
-- **TypeScript** — tipagem estática
-- **React Router** — navegação entre as telas
-- **Recharts** — gráficos de umidade
-- **CSS puro** (variáveis/tokens de tema) — sem frameworks de UI, para manter fidelidade total ao design de referência
+- **Vite**: build e servidor de desenvolvimento
+- **React 19** e **React Router**: interface e navegação
+- **TypeScript**: tipagem estática
+- **Recharts**: gráficos
+- **CSS puro** com variáveis de tema, sem framework de UI, para manter fidelidade ao design de referência
+- **oxlint**: lint
 
 ---
 
-## ▶️ Como rodar o projeto (passo a passo)
+## ▶️ Como rodar
 
 ### 1. Pré-requisitos
 
-Você precisa ter o **Node.js** instalado no computador (versão 18 ou superior). Para verificar se já tem, abra o terminal e digite:
+**Node.js 20.19+ ou 22.12+** (exigência do Vite 8). Para conferir:
 
 ```bash
 node -v
 ```
 
-Se aparecer um número de versão (ex: `v20.11.0`), está tudo certo. Se der erro, baixe e instale o Node.js em **https://nodejs.org** (escolha a versão "LTS").
+Se não tiver, instale a versão LTS em https://nodejs.org. O `npm` já vem junto.
 
-O `npm` (gerenciador de pacotes) já vem junto com o Node.js — não precisa instalar separado.
+### 2. Instalar as dependências
 
-### 2. Extrair e abrir o projeto
-
-Extraia o arquivo `.zip` recebido em uma pasta de sua preferência e abra essa pasta no terminal:
+A partir da raiz do repositório:
 
 ```bash
-cd caminho/para/ecotech-solutions
-```
-
-### 3. Instalar as dependências
-
-Este comando baixa todas as bibliotecas que o projeto usa (React, Vite, etc.) para dentro da pasta `node_modules`:
-
-```bash
+cd app/frontend
 npm install
 ```
 
-Isso pode levar de 1 a 3 minutos, dependendo da sua internet.
-
-### 4. Configurar as variáveis de ambiente
-
-O projeto já vem com um arquivo `.env` pronto para uso local (não precisa fazer nada). Se quiser recriá-lo do zero, copie o modelo:
+### 3. Configurar o ambiente
 
 ```bash
 cp .env.example .env
 ```
 
-Para usar o backend (`app/backend`), deixe no `.env` a URL dele. Sem essa variável o app roda com os dados simulados:
+O `.env.example` já aponta para o backend local:
 
 ```
 VITE_API_URL=http://localhost:3333
 ```
 
-O login passa a ser com e-mail e senha de uma conta do backend (`POST /auth/register` no Swagger em `/docs`).
+- **Com o backend:** suba o backend antes (veja o [README dele](../backend/README.md)) e crie uma conta em `POST /auth/register`, pelo Swagger em `http://localhost:3333/docs`. Depois entre no painel com esse e-mail e senha.
+- **Sem backend:** apague a linha `VITE_API_URL` (ou deixe-a vazia). O app roda com os dados simulados e aceita qualquer e-mail e senha.
 
-> ⚠️ O arquivo `.env` nunca deve ser enviado para o Git/GitHub — ele já está listado no `.gitignore` por segurança.
+> ⚠️ O `.env` não vai para o Git (está no `.gitignore`). Não existe chave de API no front: tudo que vai no bundle é público, e a autenticação é por JWT.
 
-### 5. Rodar o projeto em modo desenvolvimento
+### 4. Rodar em desenvolvimento
 
 ```bash
 npm run dev
 ```
 
-O terminal vai mostrar algo como:
+Abra http://localhost:5173. As alterações no código atualizam a tela na hora. Para parar, use `Ctrl + C`.
 
-```
-Local:   http://localhost:5173/
-```
+### Outros comandos
 
-Abra esse endereço no navegador. Você verá a tela de **Login**.
-
-> 🔑 O login é simulado (não existe backend ainda). Digite **qualquer usuário e qualquer senha** (não podem ficar vazios) e clique em **Entrar**.
-
-Enquanto o `npm run dev` estiver rodando, qualquer alteração que você fizer no código atualiza a tela automaticamente (hot reload). Para parar o servidor, use `Ctrl + C` no terminal.
-
-### 6. Gerar a versão de produção (opcional)
-
-Quando quiser gerar os arquivos finais otimizados para colocar em um servidor/hospedagem:
-
-```bash
-npm run build
-```
-
-Isso cria uma pasta `dist/` com o site pronto. Para conferir localmente como ficou o build de produção:
-
-```bash
-npm run preview
-```
+| Comando | O que faz |
+|---|---|
+| `npm run build` | Checa os tipos e gera a versão de produção em `dist/` |
+| `npm run preview` | Serve o `dist/` localmente para conferir o build |
+| `npm run lint` | Roda o oxlint |
 
 ---
 
-## 🧩 O que já está funcional na interface
+## 🔌 Modo API
 
-- **Login**: validação de campos, mostrar/ocultar senha, loading no botão "Entrar", redireciona para a Visão Geral.
-- **Sidebar**: navegação real entre todas as páginas, item ativo destacado. Em telas pequenas vira um menu lateral (☰) com overlay.
-- **Header**: sino de notificações e avatar do usuário abrem menus reais; "Sair do sistema" desloga e volta pro login.
-- **Plantas**: busca em tempo real, clique na planta ou no ícone de lápis abre o formulário de edição (nome e faixa ideal), "Salvar" atualiza a lista, "Cancelar" reverte, lixeira abre confirmação e remove a planta, paginação funcional.
-- **Monitor**: seletor de planta atualiza todo o painel. Botões **Ligar/Desligar** e **Automático/Manual** trocam o estado real de irrigação (refletido também na Visão Geral). Botões 6h/12h/24h/7d trocam os dados do gráfico.
-- **Dashboard**: filtro de período, botão **Gerar Relatório de Irrigação** baixa um CSV real, link "Ver todas" expande a tabela de leituras.
-- **Configurações**: tema escuro/claro aplica de verdade em todo o app (salvo no navegador), toggles de notificação funcionam, "Alterar senha" abre modal com validação, "Sair" desloga.
+`src/api/types.ts` define o contrato (`EcotechApi`) no vocabulário das telas. `src/api/index.ts` escolhe a implementação: `httpEcotechApi` quando `VITE_API_URL` existe, `mockEcotechApi` quando não.
 
----
+No modo API o backend é a fonte da verdade:
 
-## 📁 Estrutura de pastas
+- o `PlantsContext` carrega plantas, placas, culturas, ciclos de irrigação, consumo e leituras ao entrar e depois a cada 15 s;
+- liga/desliga, modo, edição de planta e de cultura e calibração vão para a API e, em seguida, os dados são recarregados. Se a API recusar, a mudança otimista é desfeita;
+- a irrigação automática é decidida pelo backend a cada leitura da placa, e não no navegador;
+- o access token vence em 15 minutos e é renovado sozinho com o refresh token. Se o refresh falhar, o app volta para o login.
 
-```
-src/
-├── components/   # Botões, Cards, Modal, Tabela, Inputs, Sidebar, Header, ícones
-├── pages/        # Login, VisaoGeral, Dashboard, Monitor, Plantas, Configuracoes
-├── layouts/      # MainLayout (sidebar + conteúdo)
-├── context/      # AuthContext, ThemeContext, PlantsContext (estado global)
-├── hooks/        # (reservado para hooks customizados futuros)
-├── types/        # Tipos TypeScript do domínio
-├── utils/        # Dados mockados e helpers
-└── styles/       # theme.css (tokens de cor) e common.css (classes compartilhadas)
-```
+`src/api/mappers.ts` é o único lugar que conhece os dois formatos: DTOs do backend, em inglês, e modelos de `src/types`, em português.
 
-## 🔧 Variáveis de ambiente
+### O que ainda é simulado no modo API
 
-| Variável | Descrição |
-| --- | --- |
-| `VITE_API_URL` | URL do backend. Sem ela, o app usa os dados simulados de `src/utils/mockData.ts` |
+- Previsão do tempo (`climaInicial`)
+- Gráfico de umidade do Monitor (`gerarHistoricoPlanta`; o backend já tem `GET /plants/:id/readings/history`)
+- Fotos das plantas, que ficam só na memória do navegador
+- "Registrar leitura agora", que só recarrega as últimas leituras recebidas
 
-Não existe chave de API no front: tudo que vai no bundle é público. A autenticação é por JWT (login → access token + refresh token).
+## 🧪 Modo simulado
 
-## 🔌 Próximos passos sugeridos
-
-- Gráfico de umidade do Monitor com o histórico real (`GET /plants/:id/readings/history`); hoje ele ainda é gerado por `gerarHistoricoPlanta`.
-- Mostrar no sino os alertas gravados pelo backend (`GET /alerts`) e marcá-los como lidos.
-- Previsão do tempo, fotos e "Registrar leitura agora" dependem de recursos que o backend ainda não tem (ver "Ainda falta" no README do backend).
+Todos os dados vêm de `src/utils/mockData.ts` e o estado fica em memória (Context API). A irrigação é **simulada**: a cada ~1,5 s reais passa 1 minuto simulado e o solo ganha 2 pontos de umidade. A vazão simulada é de 2 L/min, e a economia é estimada em relação a uma irrigação convencional de horário fixo.
 
 ---
 
-## 💧 Umidade crítica, irrigação e economia de água
+## 💧 Regras de umidade e irrigação
 
-Funcionalidades adicionadas sobre o sistema existente (sem alterar layout/estilo):
+As mesmas regras rodam no backend (`app/backend/src/domain`) e, no modo simulado, aqui (`src/utils`).
 
-- **Limites de umidade por planta** (tela *Plantas → Editar planta*): crítica, mínima, faixa ideal e máxima.
-  Regra de status (`src/utils/umidade.ts`): **Crítico** abaixo da crítica · **Atenção** abaixo da mínima ou acima da máxima · **Normal** no restante.
-- **Alertas** (`src/utils/alertas.ts`): umidade crítica, umidade baixa/alta, sensor offline, reservatório baixo (< 20%), temperatura elevada (> 32 °C), irrigação iniciada/concluída. Aparecem na Visão Geral, no Monitor (por planta) e no sino do Header.
-- **Irrigação por planta** (tela *Monitor*): Ligar/Desligar, modo Automático/Manual, tempo de irrigação, status e histórico. No modo automático, a irrigação começa sozinha ao detectar umidade crítica e para ao voltar à faixa ideal; no manual o sistema apenas recomenda iniciar a irrigação.
-- **Histórico** de umidade (com a linha da umidade crítica) e de irrigação (data, horário, duração, tipo, motivo, litros). O relatório CSV do Dashboard inclui essas colunas.
-- **Água utilizada / economizada / % de economia** no Dashboard — *"Mais verde, menos desperdício."*
-- **Sensores** (nova rota `/sensores`) e informações extras de cada planta (temperatura, última irrigação, consumo).
-
-### ⚠️ Dados simulados (sem `VITE_API_URL`)
-
-Sem backend configurado, todos os dados vêm de `src/utils/mockData.ts` e a irrigação é **simulada**: a cada ~1,5 s reais passa 1 minuto simulado e o solo ganha 2 pontos de umidade. A vazão simulada é de 2 L/min e a economia é estimada em relação a uma irrigação convencional de horário fixo.
-
-### 🔌 Preparação para API / IoT
-
-`src/api/types.ts` define o contrato (`EcotechApi`) no vocabulário das telas. Sem `VITE_API_URL` o app usa `mockEcotechApi` e o `PlantsContext` simula a irrigação. Com ela, usa `httpEcotechApi` e o backend passa a ser a fonte da verdade:
-
-- o `PlantsContext` carrega plantas, placas, culturas, ciclos, consumo e leituras ao entrar e a cada 15 s;
-- liga/desliga, modo, edição de planta, cultura e calibração vão para a API e, em seguida, os dados são recarregados (se a API recusar, a mudança otimista é desfeita);
-- a regra da irrigação automática roda no backend, a cada leitura da placa, e não mais no navegador.
-
-`src/api/mappers.ts` é o único lugar que conhece os dois formatos (DTOs do backend em inglês × modelos de `src/types`).
-
----
+- **Limites por planta** (*Plantas → Editar planta*): crítica, mínima, faixa ideal e máxima.
+- **Status** (`src/utils/umidade.ts`): **Crítico** abaixo da crítica, **Atenção** abaixo da mínima ou acima da máxima, **Normal** no resto.
+- **Automático:** liga ao detectar umidade crítica e para ao voltar à faixa ideal (ou em 20 minutos). Se o usuário desligar com o solo ainda crítico, o automático não religa até a umidade se recuperar.
+- **Manual:** liga por um tempo escolhido ou até ser desligado, e para se passar da máxima. O sistema só recomenda irrigar.
+- **Histórico:** cada irrigação registra data, duração, tipo, motivo, litros e a umidade antes e depois.
+- **Alertas** (`src/utils/alertas.ts`): umidade crítica, baixa e alta, sensor offline, reservatório baixo (< 20%), temperatura elevada (> 32 °C), estresse hídrico e irrigação iniciada/concluída. Aparecem na Visão Geral, no Monitor e no sino do Header.
 
 ## 🤖 Inteligência da horta
 
-Todas as regras são funções puras em `src/utils/analise.ts` (fáceis de testar e de trocar por um serviço de IA/backend):
+Regras em funções puras, em `src/utils/analise.ts`:
 
 | Funcionalidade | Onde aparece | Regra resumida |
 |---|---|---|
-| Previsão do tempo | Visão Geral | Temperatura, condição, máx./mín., probabilidade e horário da chuva (mock) |
-| Recomendações | Visão Geral | Irrigar plantas em modo manual que ficarão críticas em ≤ 3 h; adiar irrigação quando a chuva (≥ 60%) chega antes de a planta ficar crítica |
-| Previsão de umidade | Monitor | Queda por hora (ajustada pela temperatura) para Agora / 1 h / 2 h / 3 h e aviso de quando atinge o nível crítico |
-| Saúde da planta (0–100) | Monitor | Umidade 50% · temperatura 20% · luminosidade 15% · frequência de irrigação 15% → Saudável ≥ 80, Atenção 60–79, Crítico < 60 |
-| Anomalias (alertas) | Visão Geral / sino | Sensor com leitura parada ≥ 12 h; consumo ≥ 25% acima da média; ≥ 4 irrigações em 6 h na mesma planta |
-| Custo e economia | Dashboard / Relatórios | Litros × tarifa simulada (R$ 6,48/m³) |
-| Eficiência da Ecotech | Visão Geral | Economia 25% · saúde 30% · sensores 15% · alertas 15% · uso inteligente da água 15% |
-| Culturas | Plantas | Temperatura, luminosidade, irrigações/dia e ciclo por cultura (editáveis); limites de umidade continuam por planta |
-| Colheita | Monitor | Data de plantio (editável) + ciclo da cultura |
+| Previsão do tempo | Visão Geral | Temperatura, condição, máx./mín., probabilidade e horário da chuva (simulado) |
+| Recomendações | Visão Geral | Irrigar plantas em modo manual que ficarão críticas em ≤ 3 h; adiar quando a chuva (≥ 60%) chega antes de a planta ficar crítica |
+| Previsão de umidade | Monitor | Queda por hora (ajustada pela temperatura) para agora, 1 h, 2 h e 3 h, e aviso de quando atinge o nível crítico |
+| Saúde da planta (0–100) | Monitor | Umidade 50%, temperatura 20%, luminosidade 15% e frequência de irrigação 15%. Saudável ≥ 80, Atenção 60–79, Crítico < 60 |
+| Anomalias | Visão Geral e sino | Sensor com leitura parada há ≥ 12 h; consumo ≥ 25% acima da média; ≥ 4 irrigações em 6 h na mesma planta |
+| Custo e economia | Dashboard e Relatórios | Litros × tarifa (R$ 6,48/m³ no simulado; no modo API, a tarifa vem do backend) |
+| Eficiência | Visão Geral | Economia 25%, saúde 30%, sensores 15%, alertas 15% e uso inteligente da água 15% |
+| Culturas | Plantas | Temperatura, luminosidade, irrigações por dia e ciclo, editáveis. Os limites de umidade continuam por planta |
+| Colheita | Monitor | Data de plantio + ciclo da cultura |
 | Histórico visual | Plantas | Fotos por planta ("Dia N" desde o plantio), reduzidas no navegador |
 
-Observações: o clima, os históricos diários e a taxa de secagem são **simulados** (`mockData.ts`); as fotos ficam apenas em memória até existir backend. A exportação de relatórios ainda não foi implementada. Anomalia de consumo aparece só como alerta (não se repete nas recomendações).
+## 🧭 Roteiro IrrigaAI: o que já está coberto
 
----
-
-## 🧭 Roteiro IrrigaAI → o que o front-end já cobre
-
-| Etapa (anotações) | No sistema | Falta (hardware / dados reais) |
+| Etapa | No sistema | Falta |
 |---|---|---|
-| 1. Sensores e calibração | *Sensores → Calibrar*: placa **Arduino (0–1023)** ou **ESP32 (0–4095)**, leitura bruta no ar (0%) e na água (100%), prévia ao vivo e validação. O valor bruto é preservado ao recalibrar; só a conversão para % muda (`utils/calibracao.ts`). | Medir os valores de seco/molhado de cada sensor real |
-| 2. Manejo do solo | Faixas: **Seco** (abaixo da mínima), **Adequado**, **Excesso de água** (acima da máxima) e umidade crítica por planta | Definir as faixas da cultura escolhida em campo |
-| 3. Acionamento remoto | Ligar/Desligar por planta; cada comando passa por `ecotechApi.enviarComandoIrrigacao` (hoje simulado) | Backend + ESP32 acionando a bomba |
-| 4. Testes de irrigação | Cada irrigação registra **umidade antes → depois**; o Monitor sugere o tempo de bomba (~N min) pela resposta média medida | Resposta real do solo ao gotejamento |
-| 5. Coleta de dados | *Relatórios → Dados coletados*: leituras brutas + % nas fases antes/durante/depois, **Registrar leitura agora** e **Exportar CSV** (com placa, profundidade e posição do sensor) | Gravar as leituras reais em banco |
-| 6. Cultura | Parâmetros por cultura editáveis (Plantas) | Escolher a cultura de referência |
-| 7. Planta e clima | Sensores de **temperatura foliar** e **umidade do ar**; alerta de possível estresse hídrico quando a folha fica ≥ 3 °C acima do ar; previsão do tempo | Ligar os sensores reais |
-| 8. IA preditiva | Regras de previsão de umidade e recomendações (`utils/analise.ts`) como base; decisões usam faixas e tendência (queda por hora), não leituras isoladas | Treinar modelos quando houver dados reais |
-| 9. Estrutura (case, solar, LoRa) | — não se aplica ao front-end | Prototipagem física e testes de alcance em campo |
-
-`PUT /sensores/:id/calibracao` está em `src/api/endpoints.ts`: o dispositivo envia apenas o valor bruto e a calibração fica no sistema.
+| 1. Sensores e calibração | *Sensores → Calibrar*: placa Arduino (0–1023) ou ESP32 (0–4095), leitura bruta no ar (0%) e na água (100%), prévia ao vivo e validação. A calibração é gravada no backend (`PUT /devices/:id/calibration`) e a placa envia só o valor bruto | Medir seco/molhado de cada sensor real |
+| 2. Manejo do solo | Faixas **Seco**, **Adequado** e **Excesso de água**, e umidade crítica por planta | Definir as faixas da cultura em campo |
+| 3. Acionamento remoto | Ligar/desligar por planta pela API; o comando vai para a placa na resposta da próxima leitura | Firmware acionando a bomba |
+| 4. Testes de irrigação | Cada irrigação registra a umidade antes e depois; o Monitor sugere o tempo de bomba pela resposta média medida | Resposta real do solo ao gotejamento |
+| 5. Coleta de dados | *Relatórios → Dados coletados*: leituras brutas e em %, nas fases antes/durante/depois, e exportação em CSV com placa, profundidade e posição | Pedir uma leitura à placa sob demanda |
+| 6. Cultura | Parâmetros por cultura, gravados no backend | Escolher a cultura de referência |
+| 7. Planta e clima | Sensores de temperatura foliar e umidade do ar; alerta de estresse hídrico quando a folha fica ≥ 3 °C acima do ar | Previsão do tempo real e sensores instalados |
+| 8. IA preditiva | Previsão de umidade e recomendações por faixas e tendência (`utils/analise.ts`) | Treinar modelos com dados reais |
+| 9. Estrutura (case, solar, LoRa) | Fora do escopo do front | Protótipo físico e testes de alcance |
 
 ---
 
-## 🗂️ API e rotas separadas
+## 📁 Estrutura
 
 ```
-src/api/                    ← só comunicação com o backend
-  types.ts                  contrato `EcotechApi` (o que as telas podem pedir)
-  dto.ts                    formato das respostas do backend
-  mappers.ts                DTO do backend ⇄ modelos das telas
-  endpoints.ts              todas as URLs/caminhos da API
-  session.ts                tokens da sessão (sessionStorage) e aviso de sessão expirada
-  client.ts                 fetch com Bearer, refresh automático no 401, timeout e `ApiError`
-  ecotechApi.http.ts        implementação real (REST)
-  ecotechApi.mock.ts        implementação simulada (dados de utils/mockData.ts)
-  index.ts                  exporta `ecotechApi`: HTTP se VITE_API_URL existir, senão mock
-
-src/routes/                 ← só navegação
-  paths.ts                  todos os caminhos das telas (`ROTAS`)
-  routeConfig.ts            tabela de telas autenticadas (`ROTAS_PRIVADAS`)
-  AppRoutes.tsx             monta as rotas (desktop e Apple Watch)
-  ProtectedRoute.tsx        redireciona para /login sem sessão
+src/
+├── api/          # comunicação com o backend (ver abaixo)
+├── routes/       # navegação (ver abaixo)
+├── pages/        # Login, VisaoGeral, Dashboard, Monitor, Relatorios, Sensores, Plantas, Configuracoes, Watch
+├── components/   # Button, Card, Modal, Table, Input, Sidebar, Header, AlertList, ícones…
+├── layouts/      # MainLayout (Sidebar + conteúdo)
+├── context/      # AuthContext, ThemeContext e PlantsContext (estado da horta)
+├── hooks/        # useIsWatch
+├── types/        # tipos do domínio
+├── utils/        # regras (umidade, alertas, análise, calibração), formatação, CSV e dados simulados
+└── styles/       # theme.css (tokens de cor) e common.css (classes compartilhadas)
 ```
 
-- **Nova tela:** crie a página, adicione o caminho em `routes/paths.ts` e uma linha em `routes/routeConfig.ts` (e o item no Sidebar, se aparecer no menu).
-- **Novo endpoint:** declare em `api/endpoints.ts`, o método em `api/types.ts` e implemente em `ecotechApi.http.ts` e `ecotechApi.mock.ts`.
+```
+src/api/
+  types.ts              contrato `EcotechApi` (o que as telas podem pedir)
+  dto.ts                formato das respostas do backend
+  mappers.ts            DTO do backend ⇄ modelos das telas
+  endpoints.ts          todas as URLs da API
+  session.ts            tokens da sessão (sessionStorage) e aviso de sessão expirada
+  client.ts             fetch com Bearer, refresh automático no 401, timeout e `ApiError`
+  ecotechApi.http.ts    implementação real (REST)
+  ecotechApi.mock.ts    implementação simulada
+  index.ts              exporta `ecotechApi`: HTTP se VITE_API_URL existir, senão simulado
+
+src/routes/
+  paths.ts              caminhos das telas (`ROTAS`)
+  routeConfig.ts        telas autenticadas (`ROTAS_PRIVADAS`)
+  AppRoutes.tsx         monta as rotas (desktop e Apple Watch)
+  ProtectedRoute.tsx    redireciona para /login sem sessão
+```
+
+### Como estender
+
+- **Nova tela:** crie a página, adicione o caminho em `routes/paths.ts` e uma linha em `routes/routeConfig.ts` (e o item no Sidebar, se for aparecer no menu).
+- **Novo endpoint:** declare em `api/endpoints.ts`, o tipo da resposta em `api/dto.ts`, o método em `api/types.ts`, a conversão em `api/mappers.ts`, e implemente em `ecotechApi.http.ts` e `ecotechApi.mock.ts`.
 - `App.tsx` só monta os providers e o `AppRoutes`.
 
+## 🔜 Próximos passos
+
+- Gráfico do Monitor com o histórico real (`GET /plants/:id/readings/history`).
+- Mostrar no sino os alertas gravados pelo backend (`GET /alerts`) e marcá-los como lidos.
+- Telas de cadastro de planta e de placa (hoje só pelo Swagger).
+- Previsão do tempo, fotos e "Registrar leitura agora" dependem de recursos que o backend ainda não tem (veja "Ainda falta" no [README do backend](../backend/README.md#ainda-falta)).
