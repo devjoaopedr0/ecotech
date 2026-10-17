@@ -221,3 +221,15 @@ export interface LeituraColetada {
   umidade: number;
   fase: FaseLeitura;
 }
+
+// ---------- Cadastro ----------
+export type NivelConhecimentoTecnologia = 'muito' | 'medio' | 'pouco';
+
+export interface CadastroForm {
+  nome: string;
+  email: string;
+  usuario: string;
+  senha: string;
+  confirmarSenha: string;
+  nivelConhecimento: NivelConhecimentoTecnologia | '';
+}
