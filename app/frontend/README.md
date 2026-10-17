@@ -7,11 +7,14 @@ O **Ecotech Solutions** é um sistema web para monitorar e controlar a irrigaç�
 
 Este repositório contém **apenas o front-end** (a interface visual e a lógica de tela), construído em **React + TypeScript + Vite**. Hoje os dados de exemplo (plantas, histórico de umidade, leituras) são simulados dentro do próprio projeto, prontos para no futuro serem conectados a uma API real através da variável `VITE_API_URL`.
 
+> 📜 O histórico de alterações, com o que foi feito em cada commit, está em [CHANGELOG.md](CHANGELOG.md).
+
 ### Telas do sistema
 
 | Tela | O que faz |
 | --- | --- |
 | **Login** | Tela de entrada do sistema, com usuário e senha |
+| **Cadastro** | Criação de conta com nome, e-mail, usuário, senha e um questionário sobre o nível de conhecimento em tecnologia |
 | **Visão Geral** | Resumo rápido: saúde da horta, umidade atual, alertas e últimas leituras |
 | **Dashboard** | Gráficos, estatísticas e geração de relatório de irrigação (CSV) |
 | **Monitor** | Acompanhamento em tempo real de uma planta específica, com controles de irrigação (ligar, desligar, automático, manual) |
@@ -116,7 +119,8 @@ npm run preview
 
 ## 🧩 O que já está funcional na interface
 
-- **Login**: validação de campos, mostrar/ocultar senha, loading no botão "Entrar", redireciona para a Visão Geral.
+- **Login**: validação de campos, mostrar/ocultar senha, loading no botão "Entrar", redireciona para a Visão Geral. Link "Cadastre-se" leva à tela de cadastro e, ao voltar de um cadastro, exibe a mensagem de sucesso.
+- **Cadastro** (`/cadastro`): formulário com questionário Muito / Médio / Pouco, mostrar/ocultar senha, loading no botão "Cadastrar" e retorno ao login. A validação já está estruturada, mas desativada (veja a seção *Cadastro e questionário*).
 - **Sidebar**: navegação real entre todas as páginas, item ativo destacado. Em telas pequenas vira um menu lateral (☰) com overlay.
 - **Header**: sino de notificações e avatar do usuário abrem menus reais; "Sair do sistema" desloga e volta pro login.
 - **Plantas**: busca em tempo real, clique na planta ou no ícone de lápis abre o formulário de edição (nome e faixa ideal), "Salvar" atualiza a lista, "Cancelar" reverte, lixeira abre confirmação e remove a planta, paginação funcional.
@@ -131,7 +135,7 @@ npm run preview
 ```
 src/
 ├── components/   # Botões, Cards, Modal, Tabela, Inputs, Sidebar, Header, ícones
-├── pages/        # Login, VisaoGeral, Dashboard, Monitor, Plantas, Configuracoes
+├── pages/        # Login, Cadastro, VisaoGeral, Dashboard, Monitor, Plantas, Sensores, Relatorios, Configuracoes
 ├── layouts/      # MainLayout (sidebar + conteúdo)
 ├── context/      # AuthContext, ThemeContext, PlantsContext (estado global)
 ├── hooks/        # (reservado para hooks customizados futuros)
@@ -152,7 +156,7 @@ src/
 - Conectar `VITE_API_URL` a um backend real (hoje os dados são mockados em `src/utils/mockData.ts` e mantidos em memória via Context API).
 - Trocar a autenticação simulada (`sessionStorage`) por um backend real de login.
 - Persistir as plantas cadastradas em um banco de dados em vez de estado em memória.
-=======
+- Ativar as regras de validação do cadastro e enviar os dados para o backend.
 
 ---
 
@@ -239,3 +243,41 @@ src/routes/                 ← só navegação
 - **Novo endpoint:** declare em `api/endpoints.ts`, o método em `api/types.ts` e implemente em `ecotechApi.http.ts` e `ecotechApi.mock.ts`.
 - `App.tsx` só monta os providers e o `AppRoutes`.
 
+---
+
+## 📝 Cadastro e questionário
+
+Tela pública em `/cadastro` (acessível pelo link **Cadastre-se** no login; não existe na versão do Apple Watch).
+
+- **Campos:** nome completo, e-mail, usuário, senha e confirmar senha.
+- **Questionário:** *"Qual é o seu nível de conhecimento em tecnologia?"*, com as opções **Muito**, **Médio** e **Pouco**, exibidas como cartões selecionáveis (radio buttons acessíveis por teclado).
+- **Envio:** simulado. Não há backend, então os dados não são salvos: o usuário é levado de volta ao login com a mensagem *"Cadastro realizado!"*.
+
+### Validação (estruturada, mas desativada)
+
+Hoje **nada é validado**, mas toda a estrutura já existe em `src/pages/Cadastro/cadastroValidation.ts`:
+
+| Item | Função |
+| --- | --- |
+| `OPCOES_CONHECIMENTO` | Opções do questionário (valor, título e descrição) |
+| `regras` | Regras prontas e reutilizáveis: `obrigatorio`, `email`, `minCaracteres`, `igualA` e `umaDasOpcoes` |
+| `regrasCadastro` | Lista de regras de cada campo (**hoje todas vazias**) |
+| `validarCadastro(form)` | Executa as regras e retorna o primeiro erro de cada campo |
+| `temErros(erros)` | Indica se algum campo tem erro |
+
+A tela já chama `validarCadastro` no envio: se houver erros, o envio é bloqueado, a mensagem aparece abaixo do campo (prop `error` do componente `Input`) e a borda fica vermelha. O erro some quando o usuário edita o campo. Para ativar, basta preencher as listas:
+
+```ts
+export const regrasCadastro: Record<CampoCadastro, Regra[]> = {
+  nome: [regras.obrigatorio('Informe seu nome.')],
+  email: [regras.obrigatorio(), regras.email()],
+  usuario: [regras.obrigatorio()],
+  senha: [regras.obrigatorio(), regras.minCaracteres(6)],
+  confirmarSenha: [regras.igualA('senha', 'As senhas não conferem.')],
+  nivelConhecimento: [regras.umaDasOpcoes(OPCOES_CONHECIMENTO.map((o) => o.valor))],
+};
+```
+
+Uma regra nova é só uma função `(valor, form) => string | undefined` (a mensagem de erro, ou `undefined` se estiver ok).
+
+**Arquivos envolvidos:** `src/pages/Cadastro/` (tela, CSS e validação), `src/types/index.ts` (`CadastroForm`, `NivelConhecimentoTecnologia`), `src/routes/paths.ts` (`ROTAS.cadastro`), `src/routes/AppRoutes.tsx` (rota pública), `src/components/Input/` (prop `error`) e `src/pages/Login/` (link e mensagem de sucesso).
