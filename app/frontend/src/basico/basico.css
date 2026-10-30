@@ -1,0 +1,73 @@
+/*
+ * A básica usa o layout, o menu e os cartões das outras dashboards (styles/dashboard.css, MainLayout, Sidebar, Card).
+ * Aqui ficam só os estilos próprios: letras maiores, botões grandes e pouca informação por tela.
+ */
+.basico { font-size: 16px; }
+.basico .card-title { font-size: 18px; }
+
+/* ---- Situação da horta ---- */
+.basico-situacao { display: flex; align-items: center; gap: 18px; padding: 22px 24px; border-radius: var(--radius-lg, 16px); background: var(--bg-card); border: 1px solid var(--border-subtle); border-left-width: 6px; }
+.basico-situacao h2 { margin: 0 0 4px; font-size: 24px; color: var(--text-primary); }
+.basico-situacao p { margin: 0; font-size: 17px; color: var(--text-secondary); }
+.basico-situacao svg { flex: none; }
+.basico-situacao-ok { border-left-color: var(--status-ideal-fg); }
+.basico-situacao-ok svg { color: var(--status-ideal-fg); }
+.basico-situacao-atencao { border-left-color: var(--status-atencao-fg); }
+.basico-situacao-atencao svg { color: var(--status-atencao-fg); }
+.basico-situacao-critico { border-left-color: var(--status-abaixo-fg); }
+.basico-situacao-critico svg { color: var(--status-abaixo-fg); }
+
+/* ---- O que fazer agora ---- */
+.basico-tarefas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.basico-tarefas li { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-radius: var(--radius-sm); background: var(--bg-card-alt, var(--bg-card)); border: 1px solid var(--border-subtle); }
+.basico-tarefas li > svg { flex: none; margin-top: 2px; color: var(--status-atencao-fg); }
+.basico-tarefas strong { display: block; font-size: 17px; color: var(--text-primary); }
+.basico-tarefas div > span { display: block; margin-top: 3px; font-size: 15px; color: var(--text-secondary); }
+.basico-tarefas li.basico-tarefa-urgente { border-left: 4px solid var(--status-abaixo-fg); }
+.basico-tarefas li.basico-tarefa-urgente > svg { color: var(--status-abaixo-fg); }
+.basico-tag { display: inline-block; margin-right: 8px; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--status-abaixo-fg); border: 1px solid var(--status-abaixo-fg); vertical-align: 2px; }
+
+/* ---- Plantas ---- */
+.basico-plantas { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.basico-plantas > li { min-width: 0; }
+.basico-planta { height: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; padding: 18px; border-radius: var(--radius-lg, 16px); background: var(--bg-card-alt, var(--bg-card)); border: 1px solid var(--border-subtle); border-top: 5px solid var(--border-strong); }
+.basico-planta header { display: flex; align-items: center; gap: 14px; }
+.basico-planta-emoji { font-size: 40px; line-height: 1; }
+.basico-planta h3 { margin: 0; font-size: 21px; color: var(--text-primary); overflow-wrap: anywhere; }
+.basico-planta-estado { font-size: 15px; font-weight: 700; }
+.basico-planta > p { margin: 0; font-size: 16px; color: var(--text-secondary); flex: 1; }
+.basico-planta-bem { border-top-color: var(--status-ideal-fg); }
+.basico-planta-bem .basico-planta-estado { color: var(--status-ideal-fg); }
+.basico-planta-seca { border-top-color: var(--status-abaixo-fg); }
+.basico-planta-seca .basico-planta-estado { color: var(--status-abaixo-fg); }
+.basico-planta-molhada { border-top-color: var(--status-atencao-fg); }
+.basico-planta-molhada .basico-planta-estado { color: var(--status-atencao-fg); }
+.basico-planta-sem_info .basico-planta-estado { color: var(--text-muted); }
+
+.basico-agua { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; font-size: 14px; color: var(--text-secondary); }
+.basico-agua strong { font-size: 20px; color: var(--text-primary); }
+.basico-agua-barra { height: 12px; border-radius: 999px; background: var(--bg-input); overflow: hidden; }
+.basico-agua-barra > div { height: 100%; border-radius: inherit; background: var(--accent-blue); }
+
+/* ---- Botão de regar ---- */
+.basico-regar { display: flex; flex-direction: column; gap: 8px; }
+.basico-regar .btn { min-height: 52px; font-size: 17px; font-weight: 700; }
+.basico-regar-msg { margin: 0; font-size: 14px; color: var(--text-secondary); }
+.basico-regar-msg:empty { display: none; }
+.basico-regar-falhou { color: var(--status-abaixo-fg); }
+.basico-regar-regando { color: var(--accent-blue); font-weight: 600; }
+
+.basico-confirmar { display: flex; flex-direction: column; gap: 14px; font-size: 16px; color: var(--text-secondary); }
+.basico-confirmar p { margin: 0; }
+.basico-confirmar ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.basico-confirmar li { display: flex; align-items: flex-start; gap: 8px; color: var(--status-atencao-fg); font-size: 15px; }
+.basico-confirmar li svg { flex: none; margin-top: 2px; }
+.basico-confirmar-acoes { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.basico-confirmar-acoes .btn { min-height: 48px; font-size: 16px; }
+
+@media (max-width: 560px) {
+  .basico-situacao { padding: 18px; gap: 14px; }
+  .basico-situacao h2 { font-size: 20px; }
+  .basico-plantas { grid-template-columns: 1fr; }
+  .basico-confirmar-acoes .btn { flex: 1; }
+}

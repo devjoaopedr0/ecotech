@@ -1,0 +1,12 @@
+export { default as AcoesRapidas } from './AcoesRapidas';
+export { default as AtividadesRecentes } from './AtividadesRecentes';
+export { default as CentralAtencao } from './CentralAtencao';
+export { default as ControleIrrigacao } from './ControleIrrigacao';
+export { default as FaixaUmidade } from './FaixaUmidade';
+export { default as GraficoPrincipal } from './GraficoPrincipal';
+export { default as IrrigacaoResumo } from './IrrigacaoResumo';
+export { default as MonitoramentoPlantas } from './MonitoramentoPlantas';
+export { default as RecomendacoesLista } from './RecomendacoesLista';
+export { default as ResumoInteligente } from './ResumoInteligente';
+export { default as SemaforoBadge } from './SemaforoBadge';
+export { default as StatusDados } from './StatusDados';

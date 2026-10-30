@@ -1,0 +1,270 @@
+/* Padrões visuais compartilhados pelas dashboards intermediária e avançada.
+   Regras movidas das telas da avançada (sem alteração de valores) para que as duas dashboards
+   dependam de um único lugar, e não do CSS de uma tela específica. */
+
+.dash-stat { display: flex; flex-direction: column; gap: 8px; }
+
+.dash-stat-label { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text-secondary); font-weight: 600; }
+
+.dash-stat-label svg { color: var(--accent-blue); }
+
+.dash-stat strong { font-size: 24px; font-weight: 800; color: var(--text-primary); }
+
+.dash-stat-trend { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--accent-green-strong); font-weight: 600; }
+
+.dash-stat-sub { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+
+.dropdown-trigger-block { width: 100%; justify-content: space-between; }
+
+.dropdown-menu-block { left: 0; right: 0; width: 100%; }
+
+.link-btn { background: none; border: none; color: var(--accent-blue); font-size: 13px; font-weight: 700; cursor: pointer; }
+
+.link-btn:hover { text-decoration: underline; }
+
+.stats-row { display: flex; flex-direction: column; gap: 14px; }
+
+.stats-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+.stats-item-label { display: flex; align-items: center; gap: 7px; font-size: 13.5px; color: var(--text-secondary); }
+
+.stats-item strong { font-size: 16px; color: var(--text-primary); }
+
+.period-toggle { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+.period-btn {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.period-btn:hover { color: var(--text-primary); }
+
+.period-btn-active { background: var(--accent-blue-strong); border-color: var(--accent-blue-strong); color: #fff; }
+
+.period-btn-icon { display: flex; align-items: center; justify-content: center; }
+
+.chart-legend { display: flex; gap: 20px; margin-top: 10px; font-size: 12.5px; color: var(--text-secondary); flex-wrap: wrap; }
+
+.chart-legend span { display: flex; align-items: center; gap: 7px; }
+
+.legend-dot { width: 9px; height: 9px; border-radius: 50%; }
+
+.legend-dot-green { background: var(--accent-green); }
+
+.legend-dash { width: 16px; height: 0; border-top: 2px dashed var(--text-muted); display: inline-block; }
+
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 30px; }
+
+.info-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 10px; }
+
+.info-row span { display: flex; align-items: center; gap: 7px; font-size: 13.5px; color: var(--text-secondary); }
+
+.info-row span svg { color: var(--accent-green); }
+
+.info-row strong { font-size: 13.5px; color: var(--text-primary); text-align: right; }
+
+.legend-dash.legend-dash-critical { border-top-color: var(--status-abaixo-fg); }
+
+.plant-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.plant-name-cell:hover { color: var(--accent-blue); }
+
+.plant-emoji {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--bg-input);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.info-grid-1col { grid-template-columns: 1fr; }
+
+.sensores-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+.sensores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.sensor-item {
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  min-width: 0;
+}
+
+.sensor-item-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+
+.sensor-item-head > div { flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 2px; }
+
+.sensor-item-head strong { font-size: 14px; color: var(--text-primary); }
+
+.sensor-item-head small { font-size: 12px; color: var(--text-muted); }
+
+.sensor-item-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--bg-input);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-blue);
+  flex-shrink: 0;
+}
+
+.sensor-item-rows { display: flex; flex-direction: column; gap: 10px; }
+
+.sensor-item-rows .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+.sensor-item-actions { margin-top: 12px; }
+
+.vg-top-row {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr;
+  gap: 18px;
+}
+/* Com o cartão de temperatura (só existe quando há sensor online) a linha passa a ter 6 cartões. */
+.vg-top-row-6 { grid-template-columns: 1.5fr repeat(5, minmax(0, 1fr)); }
+/* Intermediária: situação + 2 indicadores essenciais (umidade e irrigação). */
+.vg-top-row-3 { grid-template-columns: 1.6fr repeat(2, minmax(0, 1fr)); }
+
+.vg-health-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.vg-health-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-green);
+  flex-shrink: 0;
+}
+
+.vg-health-icon-atencao { border-color: var(--status-atencao-fg); color: var(--status-atencao-fg); }
+
+.vg-health-icon-critico { border-color: var(--status-abaixo-fg); color: var(--status-abaixo-fg); }
+
+.vg-health-card h2 { margin: 0 0 2px; font-size: 18px; color: var(--text-primary); }
+
+.vg-health-card p { margin: 0; font-size: 13.5px; color: var(--text-secondary); }
+
+.vg-mini-card { display: flex; flex-direction: column; gap: 8px; }
+
+.vg-mini-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.vg-mini-label svg { color: var(--accent-blue); }
+
+.vg-mini-card strong { font-size: 24px; font-weight: 800; color: var(--text-primary); }
+
+.vg-mini-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.vg-mid-row {
+  align-items: start; /* cada cartão com a própria altura: evita vazio abaixo do gráfico quando a lista de alertas é mais alta */
+  display: grid;
+  grid-template-columns: 1.7fr 1fr;
+  gap: 18px;
+}
+
+.vg-bottom-row {
+  display: grid;
+  grid-template-columns: 1.7fr 1fr;
+  gap: 18px;
+}
+
+.api-hint { display: block; margin-top: 8px; font-size: 11.5px; color: var(--text-muted); }
+
+@media (max-width: 1200px) {
+  .sensores-stats { grid-template-columns: 1fr 1fr; }
+  .vg-top-row, .vg-top-row-6 { grid-template-columns: 1fr 1fr 1fr; }
+  .vg-top-row-3 { grid-template-columns: 1.4fr repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  .info-grid { grid-template-columns: 1fr; }
+  .vg-top-row, .vg-top-row-6 { grid-template-columns: 1fr 1fr; }
+  .vg-health-card { grid-column: 1 / -1; }
+  .vg-top-row-6 .vg-mini-card:last-child { grid-column: 1 / -1; }
+  .vg-top-row-3 { grid-template-columns: 1fr 1fr; }
+  .vg-mid-row, .vg-bottom-row { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .sensores-stats { grid-template-columns: 1fr; }
+  .sensores-grid { grid-template-columns: 1fr; }
+  .vg-top-row, .vg-top-row-6 { grid-template-columns: 1fr; }
+  .vg-top-row-6 .vg-mini-card:last-child { grid-column: auto; }
+  .vg-top-row-3 { grid-template-columns: 1fr; }
+}
+
+/* ---- Complementos compartilhados ---- */
+.chart-figure { margin: 0; }
+.legend-dot-blue { background: var(--accent-blue); }
+.card-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Campo de seleção com o mesmo visual do dropdown das telas avançadas (usa o seletor nativo: melhor em celulares) */
+select.dropdown-trigger { min-height: 40px; max-width: 100%; }
+select.dropdown-trigger option { background: var(--bg-card); color: var(--text-primary); }
+.field-select { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.field-select-label { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.field-select-label svg { color: var(--accent-green); }
+.field-select select { min-width: 220px; }
+.filters-row { margin-bottom: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+.filters-row > .input-field { flex: 1 1 220px; min-width: 0; }
+@media (max-width: 900px) {
+  .field-select select { flex: 1; min-width: 0; }
+}
+
+.stack-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+
+/* Aviso de indisponibilidade/qualidade dentro do cartão do sensor (texto + ícone, nunca só cor) */
+.sensor-item-aviso { display: flex; align-items: flex-start; gap: 8px; margin: 10px 0 0; font-size: 12.5px; color: var(--text-secondary); }
+.sensor-item-aviso svg { flex: none; margin-top: 2px; color: var(--status-abaixo-fg); }
+.diag-resumo { margin: 0 0 12px; font-size: 13.5px; color: var(--text-secondary); }
