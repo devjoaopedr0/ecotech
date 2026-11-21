@@ -116,8 +116,6 @@ export interface Sensor {
   localizacao: string;
   /** Quando o sensor é de umidade, a planta que ele monitora. */
   plantaId?: string;
-  /** Placa (dispositivo no backend) que contém este sensor. */
-  dispositivoId?: string;
   /** Última leitura (ms). Só relevante para sensores offline. */
   ultimaLeituraMs?: number;
   /** Leitura bruta do ADC (só sensores de umidade do solo). */
@@ -221,8 +219,7 @@ export interface LeituraColetada {
   plantaId: string;
   plantaNome: string;
   sensorCodigo: string;
-  /** Null quando a placa enviou a umidade já em %, sem o valor bruto. */
-  bruto: number | null;
+  bruto: number;
   umidade: number;
   fase: FaseLeitura;
 }
@@ -239,5 +236,23 @@ export interface CadastroForm {
   usuario: string;
   senha: string;
   confirmarSenha: string;
-  nivelConhecimento: NivelConhecimentoTecnologia | '';
+  /** Nível de visualização escolhido no cadastro (única personalização). Define a dashboard do usuário. */
+  nivel: NivelDashboard | '';
+}
+
+/** Dados enviados ao backend para criar a conta. */
+export interface NovoUsuario {
+  nome: string;
+  email: string;
+  usuario: string;
+  senha: string;
+  nivel: NivelDashboard;
+}
+
+/** Conta criada (o backend nunca devolve a senha). */
+export interface UsuarioCadastrado {
+  nome: string;
+  email: string;
+  usuario: string;
+  nivel: NivelDashboard;
 }

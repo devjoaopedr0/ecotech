@@ -1,77 +1,44 @@
-import {
-  climaInicial,
-  consumoInicial,
-  culturasIniciais,
-  historicoIrrigacaoInicial,
-  leiturasIniciais,
-  plantasIniciais,
-  sensoresIniciais,
-  sessoesIniciais,
-  TARIFA_AGUA_M3,
-} from '../utils/mockData';
-import type { EcotechApi, PreferenciasNotificacao, Usuario } from './types';
+import type { EcotechApi } from './types';
+import type { UsuarioCadastrado } from '../types';
+import { ApiError } from './client';
+import { climaInicial, consumoInicial, culturasIniciais, historicoIrrigacaoInicial, plantasIniciais, sensoresIniciais } from '../utils/mockData';
 
-const CHAVE_USUARIO = 'ecotech-usuario-simulado';
+/** Contas criadas sem backend: ficam no navegador (sem senha, que nunca é guardada aqui). */
+const CHAVE_USUARIOS = 'ecotech-usuarios';
 
-function lerUsuario(): Usuario | null {
+function lerUsuarios(): UsuarioCadastrado[] {
   try {
-    const bruto = sessionStorage.getItem(CHAVE_USUARIO);
-    return bruto ? (JSON.parse(bruto) as Usuario) : null;
+    const bruto = JSON.parse(localStorage.getItem(CHAVE_USUARIOS) ?? '[]');
+    return Array.isArray(bruto) ? (bruto as UsuarioCadastrado[]) : [];
   } catch {
-    return null;
+    return [];
   }
 }
 
-let notificacoes: PreferenciasNotificacao = { horta: true, email: false, sistema: true };
+const mesmoTexto = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
-/**
- * Implementação SIMULADA: não usa rede e não envia nada a nenhum equipamento.
- * Qualquer e-mail/senha preenchidos entram; a irrigação é simulada pelo
- * PlantsContext (por isso os comandos aqui não fazem nada).
- */
+/** Implementação SIMULADA: não usa rede e não envia nada a nenhum equipamento. */
 export const mockEcotechApi: EcotechApi = {
-  simulado: true,
-
-  async entrar(email) {
-    const usuario: Usuario = { id: 'simulado', nome: email.split('@')[0] || email, email: email.includes('@') ? email : `${email}@ecotech.com` };
-    try {
-      sessionStorage.setItem(CHAVE_USUARIO, JSON.stringify(usuario));
-    } catch {
-      // sem storage, a sessão simulada vale até recarregar
-    }
-    return usuario;
-  },
-
-  sair() {
-    try {
-      sessionStorage.removeItem(CHAVE_USUARIO);
-    } catch {
-      // ignora
-    }
-  },
-
-  usuarioAtual: lerUsuario,
-  trocarSenha: async () => undefined,
-  obterNotificacoes: async () => notificacoes,
-  salvarNotificacoes: async (dados) => (notificacoes = { ...notificacoes, ...dados }),
-
-  carregarHorta: async () => ({
-    plantas: plantasIniciais,
-    sessoes: sessoesIniciais,
-    sensores: sensoresIniciais,
-    culturas: culturasIniciais,
-    historico: historicoIrrigacaoInicial,
-    consumo: consumoInicial,
-    tarifaM3: TARIFA_AGUA_M3,
-    leituras: leiturasIniciais,
-  }),
-  atualizarPlanta: async () => undefined,
-  removerPlanta: async () => undefined,
-  criarPlanta: async () => undefined,
-  atualizarCultura: async () => undefined,
-  ajustarSensor: async () => undefined,
-  iniciarIrrigacao: async () => undefined,
-  pararIrrigacao: async () => undefined,
-  definirModoIrrigacao: async () => undefined,
+  listarPlantas: async () => plantasIniciais,
+  listarSensores: async () => sensoresIniciais,
+  listarHistoricoIrrigacao: async () => historicoIrrigacaoInicial,
+  listarConsumoAgua: async () => consumoInicial,
   obterPrevisaoTempo: async () => climaInicial,
+  listarCulturas: async () => Object.values(culturasIniciais),
+  salvarCalibracao: async () => undefined,
+  enviarComandoIrrigacao: async () => undefined,
+  cadastrarUsuario: async ({ nome, email, usuario, nivel }) => {
+    const usuarios = lerUsuarios();
+    if (usuarios.some((u) => mesmoTexto(u.usuario, usuario)))
+      throw new ApiError(409, 'Usuário já cadastrado.', { campo: 'usuario', mensagem: 'Este usuário já está em uso.' });
+    if (usuarios.some((u) => mesmoTexto(u.email, email)))
+      throw new ApiError(409, 'E-mail já cadastrado.', { campo: 'email', mensagem: 'Este e-mail já está cadastrado.' });
+    const conta: UsuarioCadastrado = { nome: nome.trim(), email: email.trim(), usuario: usuario.trim(), nivel };
+    try {
+      localStorage.setItem(CHAVE_USUARIOS, JSON.stringify([...usuarios, conta]));
+    } catch {
+      throw new ApiError(0, 'Não foi possível salvar a conta neste navegador.');
+    }
+    return conta;
+  },
 };

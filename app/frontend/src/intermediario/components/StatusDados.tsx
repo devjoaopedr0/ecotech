@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useHorta } from '../../compartilhado/hooks/useHorta';
-import { ClockIcon, WarningIcon, WifiIcon } from '../../compartilhado/components/icons';
+import { CheckCircleIcon, ClockIcon, RefreshIcon, WarningIcon, WifiIcon } from '../../compartilhado/components/icons';
 import Button from '../../compartilhado/components/Button';
 import { FONTE_DADOS } from '../../compartilhado/utils/fonteDados';
 import { formatarHora, formatarRelativo } from '../../compartilhado/utils/format';
@@ -14,6 +14,7 @@ import { avaliarAtualizacao } from '../regras/atualizacao';
 export default function StatusDados() {
   const { plantas, leituras, sensores, agora, registrarLeituras, indicadores } = useHorta();
   const [retorno, setRetorno] = useState<string | null>(null);
+  const [atualizando, setAtualizando] = useState(false);
   const status = avaliarAtualizacao(plantas, leituras, agora);
   const { online, total } = indicadores.dispositivos;
 
@@ -24,9 +25,16 @@ export default function StatusDados() {
   }, [retorno]);
 
   const atualizar = () => {
+    if (atualizando) return;
     const semComunicacao = sensores.filter((s) => s.tipo === 'umidade' && s.status !== 'online').length;
-    registrarLeituras();
-    setRetorno(`Leituras registradas às ${formatarHora(Date.now())}.${semComunicacao > 0 ? ` ${semComunicacao} sensor(es) sem comunicação não enviaram leitura.` : ''}`);
+    setAtualizando(true);
+    setRetorno(null);
+    // Pequena espera para o retorno visual (a coleta simulada é instantânea; com a API, será o tempo da requisição).
+    setTimeout(() => {
+      registrarLeituras();
+      setAtualizando(false);
+      setRetorno(`Leituras registradas às ${formatarHora(Date.now())}.${semComunicacao > 0 ? ` ${semComunicacao} sensor(es) sem comunicação não enviaram leitura.` : ''}`);
+    }, 450);
   };
 
   return (
@@ -37,12 +45,14 @@ export default function StatusDados() {
           {status.ultimaMs ? `Última leitura: ${formatarRelativo(status.ultimaMs, agora)} (${formatarHora(status.ultimaMs)})` : 'Nenhuma leitura registrada'}
         </span>
         <span className="inter-status-item" title={FONTE_DADOS.descricao}>
+          <span className="inter-status-pulso" aria-hidden="true" />
           <WifiIcon width={15} height={15} aria-hidden="true" />
           {FONTE_DADOS.tipo === 'simulado' ? 'Dados simulados' : 'Conectado à API'} · {online} de {total} sensores conectados
         </span>
       </div>
-      <Button variant="secondary" onClick={atualizar} title="Registra uma nova leitura de cada sensor de umidade conectado">
-        Atualizar leituras
+      <Button variant="secondary" onClick={atualizar} disabled={atualizando} aria-busy={atualizando} title="Registra uma nova leitura de cada sensor de umidade conectado">
+        <RefreshIcon width={15} height={15} className={atualizando ? 'girando' : undefined} aria-hidden="true" />
+        {atualizando ? 'Atualizando…' : 'Atualizar leituras'}
       </Button>
       <div className="inter-status-msg" role="status" aria-live="polite">
         {status.desatualizado && status.aviso && (
@@ -50,7 +60,7 @@ export default function StatusDados() {
             <WarningIcon width={15} height={15} aria-hidden="true" /> {status.aviso}
           </span>
         )}
-        {retorno && <span>{retorno}</span>}
+        {retorno && <span className="inter-status-ok"><CheckCircleIcon width={15} height={15} aria-hidden="true" /> {retorno}</span>}
       </div>
     </section>
   );

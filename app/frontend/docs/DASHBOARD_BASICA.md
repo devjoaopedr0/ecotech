@@ -1,7 +1,7 @@
 # Dashboard básica
 
 Entrada: `/basico`. Telas: **Início**, **Minhas plantas** (`/basico/plantas`) e **Configurações** (`/basico/configuracoes`).
-Para quem respondeu **Pouco** no cadastro ("Qual é o seu nível de conhecimento em tecnologia?"). O nível pode ser trocado depois em Configurações → Nível do painel.
+Para quem escolhe o nível **Básico** na etapa 3 do cadastro. O nível pode ser trocado depois em Configurações → Nível do painel.
 Mesmo layout, menu e componentes das outras (`MainLayout`, `Sidebar`, `Card`, `Header`, `Modal`, `Button`). Dados: `useHorta()` (os mesmos números das outras dashboards). Dados derivados: `useBasico()`.
 
 ## O que cada tela faz

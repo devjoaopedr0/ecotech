@@ -2,14 +2,20 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
+  padding: 3px 10px 3px 8px;
   border-radius: 999px;
   font-size: 12.5px;
   font-weight: 600;
+  line-height: 1.5;
   white-space: nowrap;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
 }
+.status-badge svg { flex-shrink: 0; }
 .status-ideal { background: var(--status-ideal-bg); color: var(--status-ideal-fg); }
 .status-atencao { background: var(--status-atencao-bg); color: var(--status-atencao-fg); }
 .status-abaixo { background: var(--status-abaixo-bg); color: var(--status-abaixo-fg); }
-.status-critico { background: var(--status-abaixo-bg); color: var(--status-abaixo-fg); }
-.status-semdados { background: var(--bg-input); color: var(--text-secondary); border: 1px dashed var(--border-strong); }
+.status-critico { background: var(--status-abaixo-bg); color: var(--status-abaixo-fg); font-weight: 700; }
+.status-offline { background: var(--status-offline-bg); color: var(--status-offline-fg); }
+.status-info { background: var(--status-info-bg); color: var(--status-info-fg); }
+/* Sem dados: tracejado (padrão visual distinto, além do ícone de sinal cortado). */
+.status-semdados { background: var(--status-offline-bg); color: var(--status-offline-fg); border: 1px dashed var(--border-strong); }

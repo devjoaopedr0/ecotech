@@ -1,15 +1,21 @@
+import type { ReactNode } from 'react';
 import type { PlantStatus } from '../../types';
-import { CheckIcon, WarningIcon } from '../icons';
+import { AlertOctagonIcon, CheckCircleIcon, InfoIcon, WarningIcon, WifiOffIcon } from '../icons';
 import './StatusBadge.css';
 
-const CONFIG: Record<PlantStatus, { label: string; className: string; icon: React.ReactNode }> = {
-  ideal: { label: 'Normal', className: 'status-ideal', icon: <CheckIcon width={13} height={13} /> },
-  atencao: { label: 'Atenção', className: 'status-atencao', icon: <WarningIcon width={13} height={13} /> },
-  abaixo: { label: 'Abaixo', className: 'status-abaixo', icon: <WarningIcon width={13} height={13} /> },
-  critico: { label: 'Crítico', className: 'status-critico', icon: <WarningIcon width={13} height={13} /> },
+/** Linguagem visual única de status. Além da cor, cada estado tem forma de ícone e texto próprios. */
+export type StatusVisual = PlantStatus | 'offline' | 'info';
+
+const CONFIG: Record<StatusVisual, { label: string; className: string; icon: ReactNode }> = {
+  ideal: { label: 'Normal', className: 'status-ideal', icon: <CheckCircleIcon width={13} height={13} aria-hidden="true" /> },
+  atencao: { label: 'Atenção', className: 'status-atencao', icon: <WarningIcon width={13} height={13} aria-hidden="true" /> },
+  abaixo: { label: 'Abaixo', className: 'status-abaixo', icon: <WarningIcon width={13} height={13} aria-hidden="true" /> },
+  critico: { label: 'Crítico', className: 'status-critico', icon: <AlertOctagonIcon width={13} height={13} aria-hidden="true" /> },
+  offline: { label: 'Offline', className: 'status-offline', icon: <WifiOffIcon width={13} height={13} aria-hidden="true" /> },
+  info: { label: 'Informativo', className: 'status-info', icon: <InfoIcon width={13} height={13} aria-hidden="true" /> },
 };
 
-export default function StatusBadge({ status, label }: { status: PlantStatus; label?: string }) {
+export default function StatusBadge({ status, label }: { status: StatusVisual; label?: string }) {
   const c = CONFIG[status];
   return (
     <span className={`status-badge ${c.className}`}>

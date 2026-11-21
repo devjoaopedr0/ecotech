@@ -4,7 +4,7 @@ import { ROTAS } from '../../../routes/paths';
 import { useAuth } from '../../context/AuthContext';
 import { ROTA_INICIAL, nivelSalvo } from '../../utils/nivel';
 import Input from '../../components/Input';
-import { UserCircleIcon, LockIcon, EyeIcon, EyeOffIcon, ArrowRightIcon } from '../../components/icons';
+import { UserCircleIcon, LockIcon, EyeIcon, EyeOffIcon, ArrowRightIcon, DropletIcon, WifiIcon, BellIcon, AlertOctagonIcon, CheckCircleIcon } from '../../components/icons';
 import './Login.css';
 
 export default function Login() {
@@ -17,21 +17,23 @@ export default function Login() {
   const navigate = useNavigate();
   const cadastroRealizado = (useLocation().state as { cadastroRealizado?: boolean } | null)?.cadastroRealizado;
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     setErro('');
     if (!usuario.trim() || !senha.trim()) {
-      setErro('Preencha e-mail e senha para continuar.');
+      setErro('Preencha usuário e senha para continuar.');
       return;
     }
     setCarregando(true);
-    const falha = await login(usuario, senha);
-    setCarregando(false);
-    if (falha) {
-      setErro(falha);
-    } else {
-      navigate(ROTA_INICIAL[nivelSalvo(usuario.trim())], { replace: true });
-    }
+    setTimeout(() => {
+      const ok = login(usuario, senha);
+      setCarregando(false);
+      if (ok) {
+        navigate(ROTA_INICIAL[nivelSalvo(usuario)], { replace: true });
+      } else {
+        setErro('Usuário ou senha inválidos.');
+      }
+    }, 500);
   };
 
   return (
@@ -43,6 +45,32 @@ export default function Login() {
       </div>
       <div className="login-bg-line-1" aria-hidden="true" />
       <div className="login-bg-line-2" aria-hidden="true" />
+
+      {/* Painel de marca (telas largas): o que o sistema faz, com uma prévia do tipo de informação do painel. */}
+      <aside className="login-marca" aria-hidden="true">
+        <span className="login-marca-eyebrow">Agricultura inteligente</span>
+        <h2>Cada gota no lugar certo.</h2>
+        <p>Sensores de umidade no solo, irrigação automática e alertas que explicam o que fazer — para hortas que crescem com menos água.</p>
+        <div className="login-preview">
+          <div className="login-preview-topo"><span>Horta Principal</span><small>agora</small></div>
+          <div className="login-preview-linha login-preview-critico">
+            <AlertOctagonIcon width={15} height={15} />
+            <span>Alface · Canteiro 02</span>
+            <strong>27%</strong>
+          </div>
+          <div className="login-preview-linha">
+            <CheckCircleIcon width={15} height={15} />
+            <span>Tomate · Canteiro 01</span>
+            <strong>58%</strong>
+          </div>
+          <div className="login-preview-acao"><DropletIcon width={14} height={14} /> Irrigação recomendada: 4 min</div>
+        </div>
+        <ul className="login-pontos">
+          <li><WifiIcon width={16} height={16} /> Leituras contínuas dos sensores</li>
+          <li><DropletIcon width={16} height={16} /> Irrigação por planta, manual ou automática</li>
+          <li><BellIcon width={16} height={16} /> Alertas com causa e recomendação</li>
+        </ul>
+      </aside>
 
       <form className="login-card" onSubmit={handleSubmit}>
         <div className="login-logo">
@@ -65,14 +93,18 @@ export default function Login() {
           </div>
         </div>
 
+        <div className="login-titulo">
+          <h1>Entrar</h1>
+          <p>Acesse o painel da sua horta.</p>
+        </div>
+
         <div className="login-fields">
           <Input
             icon={<UserCircleIcon width={18} height={18} />}
-            placeholder="E-mail"
-            type="email"
+            placeholder="Usuário"
             value={usuario}
             onChange={(e) => setUsuario(e.target.value)}
-            autoComplete="email"
+            autoComplete="username"
           />
           <Input
             icon={<LockIcon width={18} height={18} />}
@@ -99,7 +131,7 @@ export default function Login() {
         </div>
 
         {cadastroRealizado && !erro && <p className="login-success">Cadastro realizado! Entre com seu usuário e senha.</p>}
-        {erro && <p className="login-error">{erro}</p>}
+        {erro && <p className="login-error" role="alert">{erro}</p>}
 
         <button type="submit" className="login-submit" disabled={carregando}>
           {carregando ? 'Entrando…' : 'Entrar'}

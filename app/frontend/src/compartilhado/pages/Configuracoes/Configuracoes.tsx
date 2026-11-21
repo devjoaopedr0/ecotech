@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { ROTAS } from '../../../routes/paths';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
@@ -22,7 +22,6 @@ import {
   PhoneIcon,
   CheckIcon,
 } from '../../components/icons';
-import { ApiError, ecotechApi, type PreferenciasNotificacao } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import type { NivelDashboard } from '../../types';
@@ -45,29 +44,14 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: () =
 
 export default function Configuracoes({ openMenu }: { openMenu?: () => void }) {
   const { theme, setTheme } = useTheme();
-  const { usuario, email, logout, nivel, definirNivel } = useAuth();
+  const { usuario, logout, nivel, definirNivel } = useAuth();
   const avancado = nivel === 'avancado';
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL as string | undefined;
 
-  const [notificacoes, setNotificacoes] = useState<PreferenciasNotificacao>({ horta: true, email: false, sistema: true });
-  const { horta: notifHorta, email: notifEmail, sistema: notifSistema } = notificacoes;
-
-  useEffect(() => {
-    let ativo = true;
-    ecotechApi.obterNotificacoes().then((p) => ativo && setNotificacoes(p), () => undefined);
-    return () => {
-      ativo = false;
-    };
-  }, []);
-
-  // Otimista: muda na hora e volta atrás se o backend recusar.
-  const alternarNotificacao = (chave: keyof PreferenciasNotificacao) => {
-    const anterior = notificacoes;
-    const novo = !anterior[chave];
-    setNotificacoes({ ...anterior, [chave]: novo });
-    ecotechApi.salvarNotificacoes({ [chave]: novo }).then(setNotificacoes, () => setNotificacoes(anterior));
-  };
+  const [notifHorta, setNotifHorta] = useState(true);
+  const [notifEmail, setNotifEmail] = useState(false);
+  const [notifSistema, setNotifSistema] = useState(true);
 
   const [senhaModalAberta, setSenhaModalAberta] = useState(false);
   const [senhaAtual, setSenhaAtual] = useState('');
@@ -76,26 +60,19 @@ export default function Configuracoes({ openMenu }: { openMenu?: () => void }) {
   const [senhaErro, setSenhaErro] = useState('');
   const [senhaSucesso, setSenhaSucesso] = useState(false);
 
-  const salvarSenha = async (e: FormEvent) => {
+  const salvarSenha = (e: FormEvent) => {
     e.preventDefault();
     setSenhaErro('');
     if (!senhaAtual || !novaSenha || !confirmarSenha) {
       setSenhaErro('Preencha todos os campos.');
       return;
     }
-    // Mesma regra do backend (8 a 72 caracteres).
-    if (novaSenha.length < 8) {
-      setSenhaErro('A nova senha deve ter pelo menos 8 caracteres.');
+    if (novaSenha.length < 6) {
+      setSenhaErro('A nova senha deve ter pelo menos 6 caracteres.');
       return;
     }
     if (novaSenha !== confirmarSenha) {
       setSenhaErro('As senhas não coincidem.');
-      return;
-    }
-    try {
-      await ecotechApi.trocarSenha(senhaAtual, novaSenha);
-    } catch (erro) {
-      setSenhaErro(erro instanceof ApiError && erro.status === 401 ? 'Senha atual incorreta.' : erro instanceof Error ? erro.message : 'Não foi possível trocar a senha.');
       return;
     }
     setSenhaSucesso(true);
@@ -158,7 +135,7 @@ export default function Configuracoes({ openMenu }: { openMenu?: () => void }) {
               </div>
               <div className="profile-fields">
                 <div><span>Nome</span><strong>{usuario || 'Usuário'}</strong></div>
-                <div><span>E-mail</span><strong>{email || '--'}</strong></div>
+                <div><span>E-mail</span><strong>{(usuario || 'usuario').toLowerCase().replace(/\s+/g, '.')}@ecotech.com</strong></div>
                 <div><span>Nível de acesso</span><span className="access-pill">Usuário</span></div>
               </div>
             </div>
@@ -213,7 +190,7 @@ export default function Configuracoes({ openMenu }: { openMenu?: () => void }) {
                   <strong>Alertas da horta</strong>
                   <small>Problemas, avisos e irrigação</small>
                 </span>
-                <Toggle checked={notifHorta} onChange={() => alternarNotificacao('horta')} label="Alertas da horta" />
+                <Toggle checked={notifHorta} onChange={() => setNotifHorta((v) => !v)} label="Alertas da horta" />
               </div>
               <div className="notif-row">
                 <MailIcon width={17} height={17} />
@@ -221,7 +198,7 @@ export default function Configuracoes({ openMenu }: { openMenu?: () => void }) {
                   <strong>Notificações por e-mail</strong>
                   <small>Receba resumos e relatórios</small>
                 </span>
-                <Toggle checked={notifEmail} onChange={() => alternarNotificacao('email')} label="Notificações por e-mail" />
+                <Toggle checked={notifEmail} onChange={() => setNotifEmail((v) => !v)} label="Notificações por e-mail" />
               </div>
               <div className="notif-row">
                 <PhoneIcon width={17} height={17} />
@@ -229,7 +206,7 @@ export default function Configuracoes({ openMenu }: { openMenu?: () => void }) {
                   <strong>Notificações no sistema</strong>
                   <small>Avisos em tempo real</small>
                 </span>
-                <Toggle checked={notifSistema} onChange={() => alternarNotificacao('sistema')} label="Notificações no sistema" />
+                <Toggle checked={notifSistema} onChange={() => setNotifSistema((v) => !v)} label="Notificações no sistema" />
               </div>
             </div>
           </Card>

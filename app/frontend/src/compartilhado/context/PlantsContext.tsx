@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react';
 import type {
   Alerta,
   Clima,
@@ -45,21 +45,9 @@ import {
   type Eficiencia,
 } from '../utils/analise';
 import { CALIBRACAO_PADRAO, brutoParaPercentual, idSensorUmidade, percentualParaBruto } from '../utils/calibracao';
-import { ecotechApi, type DadosHorta } from '../api';
-import { useAuth } from './AuthContext';
+import { ecotechApi } from '../api';
 
 export const statusDaPlanta = calcularStatus;
-
-/**
- * Dois modos, decididos por `ecotechApi.simulado`:
- *  - simulado (sem VITE_API_URL): dados de mockData.ts e irrigação simulada
- *    aqui no reducer;
- *  - API: o backend é a fonte da verdade. Os dados são carregados ao entrar e
- *    a cada POLL_MS; os comandos vão para a API e, em seguida, recarregam.
- */
-const SIMULADO = ecotechApi.simulado;
-/** Intervalo de atualização no modo API (até existir SSE/WebSocket no backend). */
-const POLL_MS = 15_000;
 
 /**
  * Último comando de irrigação enviado ao serviço para uma planta.
@@ -104,11 +92,8 @@ interface Estado {
   culturas: Record<string, Cultura>;
   fotos: Record<string, FotoPlanta[]>;
   leituras: LeituraColetada[];
-  /** Sensores como vieram da fonte (mock ou API), antes dos ajustes locais. */
-  sensoresBase: Sensor[];
   /** Ajustes feitos pelo usuário sobre os sensores (calibração, profundidade, posição). */
   sensoresCfg: Record<string, SensorCfg>;
-  tarifaM3: number;
 }
 
 export interface SensorCfg {
@@ -120,7 +105,6 @@ export interface SensorCfg {
 }
 
 type Acao =
-  | { tipo: 'api/sincronizar'; dados: DadosHorta }
   | { tipo: 'planta/atualizar'; id: string; dados: Partial<Plant> }
   | { tipo: 'planta/remover'; id: string }
   | { tipo: 'planta/adicionar'; planta: Plant }
@@ -135,51 +119,46 @@ type Acao =
   | { tipo: 'irrigacao/passo'; at: number }
   | { tipo: 'irrigacao/auto'; at: number };
 
-const DADOS_VAZIOS: DadosHorta = { plantas: [], sessoes: {}, sensores: [], culturas: {}, historico: [], consumo: [], tarifaM3: TARIFA_AGUA_M3, leituras: [] };
-
 const estadoInicial: Estado = {
-  plantas: SIMULADO ? plantasIniciais : [],
-  sessoes: SIMULADO ? sessoesIniciais : {},
-  historico: SIMULADO ? historicoIrrigacaoInicial : [],
+  plantas: plantasIniciais,
+  sessoes: sessoesIniciais,
+  historico: historicoIrrigacaoInicial,
   eventos: [],
-  consumo: SIMULADO ? consumoInicial : [],
-  culturas: SIMULADO ? culturasIniciais : {},
+  consumo: consumoInicial,
+  culturas: culturasIniciais,
   fotos: {},
-  leituras: SIMULADO ? leiturasIniciais : [],
-  sensoresBase: SIMULADO ? sensoresIniciais : [],
+  leituras: leiturasIniciais,
   sensoresCfg: {},
-  tarifaM3: TARIFA_AGUA_M3,
 };
 
 const sessaoDe = (e: Estado, id: string): SessaoIrrigacao => e.sessoes[id] ?? SESSAO_PADRAO;
 const rotulo = (p: Plant) => `${p.canteiro} (${p.nome})`;
 
 /** Leitura bruta do sensor: usa o valor preservado enquanto ele for coerente com a umidade atual. */
-function brutoDa(e: Pick<Estado, 'sensoresCfg' | 'sensoresBase'>, sensorId: string, pct: number): number {
-  const cal = e.sensoresCfg[sensorId]?.calibracao ?? e.sensoresBase.find((s) => s.id === sensorId)?.calibracao ?? CALIBRACAO_PADRAO.esp32;
+function brutoDa(e: Pick<Estado, 'sensoresCfg'>, sensorId: string, pct: number): number {
+  const cal = e.sensoresCfg[sensorId]?.calibracao ?? sensoresIniciais.find((s) => s.id === sensorId)?.calibracao ?? CALIBRACAO_PADRAO.esp32;
   const fixo = e.sensoresCfg[sensorId]?.bruto;
   return fixo !== undefined && brutoParaPercentual(fixo, cal) === pct ? fixo : percentualParaBruto(pct, cal);
 }
 
 /** Sensores com a configuração aplicada e o valor das plantas (função pura: usada pelo provider e pela automação). */
-function montarSensores(plantas: Plant[], e: Pick<Estado, 'sensoresCfg' | 'sensoresBase'>): Sensor[] {
-  return e.sensoresBase.flatMap((base) => {
-    const s: Sensor = { ...base, ...e.sensoresCfg[base.id] };
+function montarSensores(plantas: Plant[], sensoresCfg: Estado['sensoresCfg']): Sensor[] {
+  return sensoresIniciais.flatMap((base) => {
+    const s: Sensor = { ...base, ...sensoresCfg[base.id] };
     if (!s.plantaId) return [s];
     const planta = plantas.find((p) => p.id === s.plantaId);
     if (!planta) return []; // planta excluída: o sensor deixa de ser exibido
-    // No modo API o valor vem da leitura real do sensor, não da umidade simulada da planta.
-    if (!SIMULADO || s.status !== 'online') return [s];
+    if (s.status !== 'online') return [s];
     // Se a umidade mudou (ex.: irrigação), a leitura deixa de estar "travada".
     const mudou = planta.umidadeAtual !== base.valor;
-    return [{ ...s, valor: planta.umidadeAtual, bruto: brutoDa(e, base.id, planta.umidadeAtual), estavelHoras: mudou ? undefined : s.estavelHoras }];
+    return [{ ...s, valor: planta.umidadeAtual, bruto: brutoDa({ sensoresCfg }, base.id, planta.umidadeAtual), estavelHoras: mudou ? undefined : s.estavelHoras }];
   });
 }
 
 /** Registra uma leitura (valor bruto + %) da planta, se o sensor dela estiver online. */
 function comLeitura(e: Estado, planta: Plant, fase: FaseLeitura, at: number): Estado {
   const sensorId = idSensorUmidade(planta.id);
-  const sensor = e.sensoresBase.find((s) => s.id === sensorId);
+  const sensor = sensoresIniciais.find((s) => s.id === sensorId);
   if (!sensor || sensor.status !== 'online') return e;
   const leitura: LeituraColetada = {
     id: `${at}-${planta.id}-${fase}-${e.leituras.length}`,
@@ -296,23 +275,6 @@ function finalizar(e: Estado, id: string, at: number, bloquearAuto: boolean): Es
 
 function reducer(e: Estado, a: Acao): Estado {
   switch (a.tipo) {
-    case 'api/sincronizar': {
-      // O backend é a fonte da verdade: substitui tudo, menos as fotos (ainda só locais).
-      const d = a.dados;
-      return {
-        ...e,
-        plantas: d.plantas,
-        sessoes: d.sessoes,
-        historico: d.historico,
-        consumo: d.consumo,
-        culturas: d.culturas,
-        leituras: d.leituras,
-        sensoresBase: d.sensores,
-        sensoresCfg: {},
-        tarifaM3: d.tarifaM3,
-      };
-    }
-
     case 'planta/atualizar':
       return { ...e, plantas: e.plantas.map((p) => (p.id === a.id ? { ...p, ...a.dados } : p)) };
 
@@ -337,7 +299,7 @@ function reducer(e: Estado, a: Acao): Estado {
     }
 
     case 'sensor/configurar': {
-      const sensor = e.sensoresBase.find((x) => x.id === a.id);
+      const sensor = sensoresIniciais.find((x) => x.id === a.id);
       const planta = sensor?.plantaId ? e.plantas.find((p) => p.id === sensor.plantaId) : undefined;
       const nova = a.cfg.calibracao;
       // O valor bruto do sensor não muda: guarda-o e recalcula a umidade da planta com a nova calibração.
@@ -392,7 +354,7 @@ function reducer(e: Estado, a: Acao): Estado {
 
     case 'irrigacao/auto': {
       let proximo = e;
-      const sensoresAtuais = montarSensores(e.plantas, e);
+      const sensoresAtuais = montarSensores(e.plantas, e.sensoresCfg);
       for (const planta of e.plantas) {
         // Nunca decide irrigar com leitura offline, travada, inválida ou desatualizada.
         if (!avaliarLeituraDaPlanta(planta, sensoresAtuais, e.leituras, a.at).confiavel) continue;
@@ -412,11 +374,6 @@ function reducer(e: Estado, a: Acao): Estado {
 // ---------------------------------------------------------------- contexto
 
 interface PlantsContextValue {
-  /** Modo API: true até a primeira carga terminar. */
-  carregando: boolean;
-  /** Última falha de comunicação com a API (null quando tudo certo). */
-  erroSincronizacao: string | null;
-
   plantas: Plant[];
   atualizarPlanta: (id: string, dados: Partial<Plant>) => void;
   removerPlanta: (id: string) => void;
@@ -467,15 +424,10 @@ interface PlantsContextValue {
 
 const PlantsContext = createContext<PlantsContextValue | undefined>(undefined);
 
-const mensagem = (e: unknown) => (e instanceof Error ? e.message : 'Falha ao falar com a API.');
-
 export function PlantsProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAuth();
   const [estado, dispatch] = useReducer(reducer, estadoInicial);
-  const [plantaSelecionadaId, setPlantaSelecionadaId] = useState<string>(estadoInicial.plantas[0]?.id ?? '');
-  const [carregando, setCarregando] = useState(!SIMULADO);
-  const [erroSincronizacao, setErroSincronizacao] = useState<string | null>(null);
-  const { plantas, sessoes, historico, eventos, consumo, culturas, fotos, tarifaM3 } = estado;
+  const [plantaSelecionadaId, setPlantaSelecionadaId] = useState<string>(plantasIniciais[0].id);
+  const { plantas, sessoes, historico, eventos, consumo, culturas, fotos } = estado;
 
   // Relógio do sistema (atualiza a cada minuto) — usado em saúde, colheita e anomalias.
   const [agora, setAgora] = useState(() => Date.now());
@@ -484,109 +436,46 @@ export function PlantsProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(t);
   }, []);
 
-  // ---- modo API: carga inicial, polling e limpeza ao sair
-  const sincronizar = useCallback(async () => {
-    try {
-      dispatch({ tipo: 'api/sincronizar', dados: await ecotechApi.carregarHorta() });
-      setErroSincronizacao(null);
-      setAgora(Date.now());
-    } catch (e) {
-      setErroSincronizacao(mensagem(e));
-    } finally {
-      setCarregando(false);
-    }
-  }, []);
-
-  // Último comando de irrigação por planta, com o resultado do envio.
-  const [comandosIrrigacao, setComandosIrrigacao] = useState<Record<string, ComandoIrrigacaoRegistro>>({});
-
-  useEffect(() => {
-    if (SIMULADO) return;
-    if (!isAuthenticated) {
-      // Não deixa dados de um usuário na tela do próximo.
-      dispatch({ tipo: 'api/sincronizar', dados: DADOS_VAZIOS });
-      return;
-    }
-    void sincronizar();
-    const timer = setInterval(() => void sincronizar(), POLL_MS);
-    return () => clearInterval(timer);
-  }, [isAuthenticated, sincronizar]);
-
-  /** Modo API: envia a alteração e recarrega (também em caso de erro, para desfazer a mudança otimista). */
-  const enviar = useCallback(
-    (chamada: () => Promise<void>) => {
-      if (SIMULADO) return;
-      chamada().then(
-        () => sincronizar(),
-        (e) => {
-          setErroSincronizacao(mensagem(e));
-          void sincronizar();
-        }
-      );
-    },
-    [sincronizar]
-  );
-
-  /** Envia um comando de irrigação registrando enviando -> enviado/falhou ('enviado' = aceito pelo serviço, não confirmado pela placa). */
-  const comandar = useCallback(
-    (id: string, acao: ComandoIrrigacaoRegistro['acao'], origem: IrrigacaoOrigem, chamada: () => Promise<void>) => {
-      const enviadoEm = Date.now();
-      const registrar = (situacao: ComandoIrrigacaoRegistro['situacao'], resposta = false) =>
-        // A resposta de um comando que já foi substituído por outro mais novo na mesma planta é descartada.
-        setComandosIrrigacao((c) => (resposta && c[id]?.enviadoEm !== enviadoEm ? c : { ...c, [id]: { acao, origem, enviadoEm, situacao } }));
-      registrar('enviando');
-      chamada().then(
-        () => {
-          registrar('enviado', true);
-          if (!SIMULADO) void sincronizar();
-        },
-        (e) => {
-          registrar('falhou', true);
-          if (!SIMULADO) {
-            setErroSincronizacao(mensagem(e));
-            void sincronizar();
-          }
-        }
-      );
-    },
-    [sincronizar]
-  );
-
   // Se a planta selecionada for excluída, seleciona a primeira que restar.
   const selecionadaId = plantas.some((p) => p.id === plantaSelecionadaId) ? plantaSelecionadaId : (plantas[0]?.id ?? '');
 
   const algumaLigada = Object.values(sessoes).some((s) => s.estado === 'ligada');
 
-  // Simulação: sempre que os dados mudam, verifica umidade crítica nas plantas em modo automático.
-  // No modo API essa regra roda no backend, a cada leitura da placa.
+  // Automação: sempre que os dados mudam, verifica umidade crítica nas plantas em modo automático.
   useEffect(() => {
-    if (SIMULADO) dispatch({ tipo: 'irrigacao/auto', at: Date.now() });
+    dispatch({ tipo: 'irrigacao/auto', at: Date.now() });
   }, [plantas, sessoes]);
 
-  // Simulação da irrigação enquanto houver alguma ligada. No modo API, a umidade vem das leituras reais.
+  // Simulação da irrigação enquanto houver alguma ligada (substituir por leituras reais dos sensores via API).
   useEffect(() => {
-    if (!SIMULADO || !algumaLigada) return;
+    if (!algumaLigada) return;
     const timer = setInterval(() => dispatch({ tipo: 'irrigacao/passo', at: Date.now() }), PASSO_MS);
     return () => clearInterval(timer);
   }, [algumaLigada]);
 
-  // Simulação: toda mudança ligada/desligada (manual, automática ou fim do tempo) é comunicada ao serviço simulado.
-  // No modo API os comandos manuais vão direto para o backend (iniciarIrrigacao/pararIrrigacao abaixo) e a automação roda lá.
+  // Toda mudança ligada/desligada é comunicada ao serviço (hoje mock, amanhã API -> ESP32).
   const anterior = useRef(sessoes);
+  const [comandosIrrigacao, setComandosIrrigacao] = useState<Record<string, ComandoIrrigacaoRegistro>>({});
   useEffect(() => {
-    if (SIMULADO) {
-      for (const [id, s] of Object.entries(sessoes)) {
-        const antes = anterior.current[id];
-        if ((antes?.estado ?? 'desligada') === s.estado) continue;
-        const origem = (s.origem ?? antes?.origem ?? 'manual') as IrrigacaoOrigem;
-        if (s.estado === 'ligada') comandar(id, 'iniciar', origem, () => ecotechApi.iniciarIrrigacao(id, s.duracaoMin));
-        else comandar(id, 'parar', origem, () => ecotechApi.pararIrrigacao(id));
-      }
+    for (const [id, s] of Object.entries(sessoes)) {
+      const antes = anterior.current[id];
+      if ((antes?.estado ?? 'desligada') === s.estado) continue;
+      const acao = s.estado === 'ligada' ? 'iniciar' : 'parar';
+      const origem = (s.origem ?? antes?.origem ?? 'manual') as IrrigacaoOrigem;
+      const enviadoEm = Date.now();
+      const registrar = (situacao: ComandoIrrigacaoRegistro['situacao'], resposta = false) =>
+        // A resposta de um comando que já foi substituído por outro mais novo na mesma planta é descartada.
+        setComandosIrrigacao((c) => (resposta && c[id]?.enviadoEm !== enviadoEm ? c : { ...c, [id]: { acao, origem, enviadoEm, situacao } }));
+      registrar('enviando');
+      ecotechApi
+        .enviarComandoIrrigacao({ plantaId: id, acao, origem, duracaoMin: s.duracaoMin })
+        .then(() => registrar('enviado', true))
+        .catch(() => registrar('falhou', true));
     }
     anterior.current = sessoes;
-  }, [sessoes, comandar]);
+  }, [sessoes]);
 
-  const sensores = useMemo<Sensor[]>(() => montarSensores(plantas, estado), [plantas, estado]);
+  const sensores = useMemo<Sensor[]>(() => montarSensores(plantas, estado.sensoresCfg), [plantas, estado.sensoresCfg]);
 
   const alertas = useMemo(
     () =>
@@ -610,7 +499,7 @@ export function PlantsProvider({ children }: { children: ReactNode }) {
   }, [plantas, culturas, luminosidade, historico, agora]);
   const recomendacoes = useMemo(() => gerarRecomendacoes(plantas, sessoes, clima), [plantas, sessoes, clima]);
 
-  const resumoConsumo = useMemo<ResumoConsumo>(() => calcularResumoConsumo(consumo, tarifaM3), [consumo, tarifaM3]);
+  const resumoConsumo = useMemo<ResumoConsumo>(() => calcularResumoConsumo(consumo, TARIFA_AGUA_M3), [consumo]);
   const eficiencia = useMemo(
     () => calcularEficiencia(resumoConsumo, Object.values(saudes), sensores, alertas, historico, agora),
     [resumoConsumo, saudes, sensores, alertas, historico, agora]
@@ -618,43 +507,21 @@ export function PlantsProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<PlantsContextValue>(() => {
     const sessaoDaPlanta = (id: string) => sessoes[id] ?? SESSAO_PADRAO;
-    // No modo API a irrigação não é simulada: o comando vai para o backend e o estado volta na recarga.
-    const iniciarIrrigacao = (id: string, duracaoMin: number | null = null) => {
-      if (SIMULADO) dispatch({ tipo: 'irrigacao/iniciar', id, at: Date.now(), origem: 'manual', duracaoMin });
-      else comandar(id, 'iniciar', 'manual', () => ecotechApi.iniciarIrrigacao(id, duracaoMin));
-    };
-    const pararIrrigacao = (id: string) => {
-      if (SIMULADO) dispatch({ tipo: 'irrigacao/parar', id, at: Date.now() });
-      else comandar(id, 'parar', sessaoDaPlanta(id).origem ?? 'manual', () => ecotechApi.pararIrrigacao(id));
-    };
-    const definirModoIrrigacao = (id: string, modo: IrrigacaoModo) => {
-      dispatch({ tipo: 'irrigacao/modo', id, modo });
-      enviar(() => ecotechApi.definirModoIrrigacao(id, modo));
-    };
+    const iniciarIrrigacao = (id: string, duracaoMin: number | null = null) =>
+      dispatch({ tipo: 'irrigacao/iniciar', id, at: Date.now(), origem: 'manual', duracaoMin });
+    const pararIrrigacao = (id: string) => dispatch({ tipo: 'irrigacao/parar', id, at: Date.now() });
+    const definirModoIrrigacao = (id: string, modo: IrrigacaoModo) => dispatch({ tipo: 'irrigacao/modo', id, modo });
     const selecionada = sessaoDaPlanta(selecionadaId);
 
     return {
-      carregando,
-      erroSincronizacao,
-
       plantas,
-      atualizarPlanta: (id, dados) => {
-        dispatch({ tipo: 'planta/atualizar', id, dados });
-        enviar(() => ecotechApi.atualizarPlanta(id, dados));
-      },
-      removerPlanta: (id) => {
-        dispatch({ tipo: 'planta/remover', id });
-        enviar(() => ecotechApi.removerPlanta(id));
-      },
-      adicionarPlanta: (dados) => {
-        if (SIMULADO) {
-          dispatch({
-            tipo: 'planta/adicionar',
-            planta: { ...dados, id: crypto.randomUUID(), dataCadastro: new Date().toLocaleDateString('pt-BR'), ultimaIrrigacao: '--' },
-          });
-        }
-        enviar(() => ecotechApi.criarPlanta(dados));
-      },
+      atualizarPlanta: (id, dados) => dispatch({ tipo: 'planta/atualizar', id, dados }),
+      removerPlanta: (id) => dispatch({ tipo: 'planta/remover', id }),
+      adicionarPlanta: (dados) =>
+        dispatch({
+          tipo: 'planta/adicionar',
+          planta: { ...dados, id: crypto.randomUUID(), dataCadastro: new Date().toLocaleDateString('pt-BR'), ultimaIrrigacao: '--' },
+        }),
       plantaSelecionadaId: selecionadaId,
       setPlantaSelecionadaId,
 
@@ -681,19 +548,14 @@ export function PlantsProvider({ children }: { children: ReactNode }) {
 
       agora,
       clima,
-      tarifaM3,
+      tarifaM3: TARIFA_AGUA_M3,
       culturas,
-      atualizarCultura: (id, dados) => {
-        dispatch({ tipo: 'cultura/atualizar', id, dados });
-        enviar(() => ecotechApi.atualizarCultura(id, dados));
-      },
+      atualizarCultura: (id, dados) => dispatch({ tipo: 'cultura/atualizar', id, dados }),
       saudeDe: (id) => saudes[id],
       recomendacoes,
       eficiencia,
       leituras: estado.leituras,
       registrarLeituras: () => {
-        // No modo API não há como pedir uma leitura à placa (ainda): recarrega as últimas recebidas.
-        if (!SIMULADO) return void sincronizar();
         // Atualiza também o relógio do sistema, para que a leitura recém-registrada não fique "no futuro" em relação a `agora`.
         const at = Date.now();
         setAgora(at);
@@ -701,15 +563,14 @@ export function PlantsProvider({ children }: { children: ReactNode }) {
       },
       configurarSensor: (id, cfg) => {
         dispatch({ tipo: 'sensor/configurar', id, cfg });
-        const sensor = sensores.find((s) => s.id === id);
-        if (sensor) enviar(() => ecotechApi.ajustarSensor(sensor, cfg));
+        if (cfg.calibracao) void ecotechApi.salvarCalibracao(id, cfg.calibracao).catch(() => undefined);
       },
       fotosDe: (id) => fotos[id] ?? [],
       adicionarFoto: (plantaId, src) =>
         dispatch({ tipo: 'foto/adicionar', plantaId, foto: { id: `${Date.now()}-${plantaId}`, src, ts: Date.now() } }),
       removerFoto: (plantaId, fotoId) => dispatch({ tipo: 'foto/remover', plantaId, fotoId }),
     };
-  }, [carregando, erroSincronizacao, enviar, comandar, sincronizar, plantas, sessoes, selecionadaId, algumaLigada, sensores, alertas, historico, consumo, resumoConsumo, agora, clima, tarifaM3, culturas, saudes, recomendacoes, eficiencia, fotos, estado.leituras, comandosIrrigacao]);
+  }, [plantas, sessoes, selecionadaId, algumaLigada, sensores, alertas, historico, consumo, resumoConsumo, agora, clima, culturas, saudes, recomendacoes, eficiencia, fotos, estado.leituras, comandosIrrigacao]);
 
   return <PlantsContext.Provider value={value}>{children}</PlantsContext.Provider>;
 }

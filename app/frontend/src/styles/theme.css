@@ -1,61 +1,96 @@
+/*
+ * Tokens visuais da Ecotech. Identidade preservada: base escura azul-petróleo, verde (natureza) e azul (água/tecnologia).
+ * Ajustes: base levemente esverdeada, superfícies com mais contraste entre si, status completos
+ * (normal, atenção, crítico, offline, informativo) e tokens de movimento/elevação.
+ */
 :root {
-  --bg-app: #0a1420;
-  --bg-sidebar: #0b1a2c;
-  --bg-card: #0e1f33;
-  --bg-card-alt: #0d1c2e;
-  --bg-input: #0a1626;
-  --border-subtle: #1c3350;
-  --border-strong: #2a4766;
-  --border-glow: #1e90b0;
+  --bg-app: #08131d;
+  --bg-sidebar: #0a1824;
+  --bg-card: #0e1e2c;
+  --bg-card-alt: #0b1925;
+  --bg-input: #091621;
+  --bg-hover: #12263a;
+  --border-subtle: #1a3044;
+  --border-strong: #274560;
+  --border-glow: #2a8fb0;
 
-  --text-primary: #eef3f8;
-  --text-secondary: #93a6bd;
-  --text-muted: #5f7692;
+  --text-primary: #eef4f7;
+  --text-secondary: #9fb1c2;
+  --text-muted: #6b8398;
 
   --accent-green: #22c55e;
   --accent-green-strong: #16d17a;
   --accent-blue: #2fb6f0;
   --accent-blue-strong: #3b9dfa;
   --accent-cyan: #22d3ee;
+  /* Verde de marca suavizado: usado em superfícies (não compete com o verde de status). */
+  --brand-tint: rgba(34, 197, 94, 0.08);
+  --water-tint: rgba(47, 182, 240, 0.08);
 
-  --status-ideal-bg: #123a24;
-  --status-ideal-fg: #34d17a;
-  --status-atencao-bg: #3a2f10;
-  --status-atencao-fg: #f0b93a;
-  --status-abaixo-bg: #3a1414;
-  --status-abaixo-fg: #f0554f;
+  /* Sistema de status — cada um também tem ícone e texto próprios (ver StatusBadge/EstadoBadge). */
+  --status-ideal-bg: #0f3322;
+  --status-ideal-fg: #3ddc84;
+  --status-atencao-bg: #36290b;
+  --status-atencao-fg: #f2bd42;
+  --status-abaixo-bg: #3b1316;
+  --status-abaixo-fg: #ff6b63;
+  --status-offline-bg: #1a2633;
+  --status-offline-fg: #94a3b8;
+  --status-info-bg: #0d2a40;
+  --status-info-fg: #5cc8f5;
 
   --danger: #ef4444;
   --danger-strong: #f14a4a;
 
+  --radius-xs: 6px;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
 
   --shadow-card: 0 0 0 1px var(--border-subtle);
+  --shadow-raise: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 10px 24px -18px rgba(0, 0, 0, 0.8);
+  --shadow-pop: 0 18px 40px rgba(0, 0, 0, 0.45);
+  --focus-ring: 0 0 0 2px var(--bg-app), 0 0 0 4px var(--accent-green);
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 0.15s;
+  --dur-med: 0.3s;
+
   --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 }
 
 [data-theme='light'] {
-  --bg-app: #f3f6fa;
+  --bg-app: #f2f6f4;
   --bg-sidebar: #ffffff;
   --bg-card: #ffffff;
-  --bg-card-alt: #f8fafc;
-  --bg-input: #f1f5f9;
-  --border-subtle: #dde5ee;
-  --border-strong: #c7d2e0;
-  --border-glow: #7dd3f0;
+  --bg-card-alt: #f6f9f8;
+  --bg-input: #eef3f1;
+  --bg-hover: #e8f0ed;
+  --border-subtle: #dbe5e1;
+  --border-strong: #c3d1cc;
+  --border-glow: #5fb8d6;
 
-  --text-primary: #101828;
-  --text-secondary: #4b5872;
-  --text-muted: #8a97ab;
+  --text-primary: #0f1c22;
+  --text-secondary: #46596a;
+  --text-muted: #73879a;
 
-  --status-ideal-bg: #e3f9ec;
-  --status-ideal-fg: #16a34a;
-  --status-atencao-bg: #fdf3d8;
-  --status-atencao-fg: #b7791f;
-  --status-abaixo-bg: #fde3e2;
-  --status-abaixo-fg: #d92d2d;
+  --brand-tint: rgba(22, 163, 74, 0.07);
+  --water-tint: rgba(14, 140, 200, 0.07);
+
+  --status-ideal-bg: #e1f6e9;
+  --status-ideal-fg: #15803d;
+  --status-atencao-bg: #fdf1d4;
+  --status-atencao-fg: #a16207;
+  --status-abaixo-bg: #fde2e1;
+  --status-abaixo-fg: #c81e1e;
+  --status-offline-bg: #edf1f5;
+  --status-offline-fg: #52606f;
+  --status-info-bg: #e0f1fb;
+  --status-info-fg: #0369a1;
+
+  --shadow-raise: 0 1px 2px rgba(15, 28, 34, 0.05), 0 8px 20px -16px rgba(15, 28, 34, 0.25);
+  --shadow-pop: 0 18px 40px rgba(15, 28, 34, 0.16);
 }
 
 * { box-sizing: border-box; }
@@ -67,6 +102,7 @@ html, body {
   color: var(--text-primary);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 #root {
@@ -77,9 +113,17 @@ html, body {
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; }
 
+/* Foco visível e consistente em todo o sistema (teclado). */
+:focus-visible { outline: 2px solid var(--accent-green); outline-offset: 2px; }
+button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
+
+/* Números de métricas alinham melhor com dígitos de mesma largura. */
+.num, strong { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--font-mono); font-size: 0.92em; letter-spacing: -0.01em; }
+
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 8px; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 8px; border: 2px solid var(--bg-app); }
 
 .scroll-x { overflow-x: auto; }
 
@@ -87,4 +131,8 @@ button { font-family: inherit; }
   .hide-mobile { display: none !important; }
   /* evita o zoom automático do iOS ao focar campos com fonte < 16px */
   input, select, textarea { font-size: 16px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }

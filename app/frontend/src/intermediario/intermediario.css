@@ -16,12 +16,13 @@
 .inter-status-alerta svg { flex: none; margin-top: 2px; }
 
 /* ---- Ações rápidas ---- */
-.inter-atalhos { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-.inter-atalho { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--bg-card); border: 1px solid var(--border-subtle); color: var(--text-primary); font-size: 13.5px; font-weight: 600; text-decoration: none; min-height: 44px; }
-.inter-atalho:hover, .inter-atalho:focus-visible { border-color: var(--border-glow); }
+.inter-atalhos { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.inter-atalho { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-subtle); color: var(--text-primary); font-size: 13.5px; font-weight: 600; text-decoration: none; min-height: 48px; transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease, transform var(--dur-fast) ease; }
+.inter-atalho:hover, .inter-atalho:focus-visible { border-color: var(--border-glow); background: var(--bg-hover); }
+.inter-atalho:active { transform: translateY(1px); }
 .inter-atalho svg { color: var(--accent-blue); flex: none; }
 .inter-atalho span { flex: 1; min-width: 0; }
-.inter-atalho strong { font-size: 15px; }
+.inter-atalho strong { min-width: 28px; padding: 2px 8px; border-radius: 999px; background: var(--bg-input); font-size: 13.5px; text-align: center; }
 
 /* ---- Semáforo e lista de plantas ---- */
 .inter-semaforo { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
@@ -29,7 +30,8 @@
 .inter-plantas { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; list-style: none; margin: 0; padding: 0; }
 .inter-plantas > li { min-width: 0; }
 .inter-planta { height: 100%; box-sizing: border-box; padding: 16px; border-radius: var(--radius-lg, 16px); background: var(--bg-card-alt, var(--bg-card)); border: 1px solid var(--border-subtle); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-decoration: none; }
-.inter-planta:hover, .inter-planta:focus-visible { border-color: var(--border-glow); }
+.inter-planta { transition: border-color var(--dur-fast) ease, transform var(--dur-fast) ease, background var(--dur-fast) ease; }
+.inter-planta:hover, .inter-planta:focus-visible { border-color: var(--border-glow); background: var(--bg-hover); transform: translateY(-1px); }
 .inter-planta-atencao { border-left: 3px solid var(--status-atencao-fg); }
 .inter-planta-critico { border-left: 3px solid var(--status-abaixo-fg); }
 .inter-planta-nome { font-weight: 700; font-size: 16px; color: var(--text-primary); overflow-wrap: anywhere; }
@@ -99,7 +101,10 @@
   .inter-plantas { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
 }
 @media (max-width: 560px) {
-  .inter-atalhos { grid-template-columns: 1fr; }
+  /* Atalhos em faixa horizontal rolável: não empurram o conteúdo principal para baixo. */
+  .inter-atalhos { display: flex; overflow-x: auto; scroll-snap-type: x proximity; margin: 0 -16px; padding: 0 16px 4px; scrollbar-width: none; }
+  .inter-atalhos::-webkit-scrollbar { display: none; }
+  .inter-atalho { flex: 0 0 auto; max-width: 240px; scroll-snap-align: start; }
   .inter-status .btn { width: 100%; }
   .inter-confirmar-duracao { flex-direction: column; align-items: stretch; }
   .inter-confirmar-acoes .btn { flex: 1; }
@@ -108,3 +113,11 @@
 /* Duas colunas de mesma largura (central/recomendações, irrigação/atividades) */
 .inter-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
 @media (max-width: 900px) { .inter-duo { grid-template-columns: 1fr; } }
+
+/* Feedback da atualização de leituras */
+@keyframes eco-girar { to { transform: rotate(360deg); } }
+.girando { animation: eco-girar 0.8s linear infinite; }
+@keyframes eco-pulso { 0% { box-shadow: 0 0 0 0 rgba(47, 182, 240, 0.5); } 70% { box-shadow: 0 0 0 7px rgba(47, 182, 240, 0); } 100% { box-shadow: 0 0 0 0 rgba(47, 182, 240, 0); } }
+.inter-status-pulso { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-blue); animation: eco-pulso 2.4s ease-out infinite; }
+.inter-status-ok { display: flex; align-items: flex-start; gap: 7px; color: var(--status-ideal-fg); animation: eco-rise 0.25s var(--ease-out) both; }
+.inter-status-ok svg { flex: none; margin-top: 1px; }

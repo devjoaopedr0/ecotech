@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ROTAS } from '../../../routes/paths';
 import { useNavigate } from 'react-router-dom';
 import { FONTE_DADOS } from '../../utils/fonteDados';
-import { BellIcon, UserCircleIcon, LogoutIcon, GearIcon } from '../icons';
+import { AlertOctagonIcon, BellIcon, InfoIcon, MenuIcon, UserCircleIcon, LogoutIcon, GearIcon, WarningIcon } from '../icons';
 import { useAuth } from '../../context/AuthContext';
 import { usePlants } from '../../context/PlantsContext';
 import { ROTA_CONFIGURACOES } from '../../utils/nivel';
@@ -26,6 +26,26 @@ export default function Header({ title, subtitle, icon, onOpenMenu }: HeaderProp
   // O menu do usuário leva às Configurações dentro da dashboard do nível dele.
   const caminhoConfig = ROTA_CONFIGURACOES[nivel];
 
+  // Sombra no cabeçalho fixo só depois de rolar a página.
+  const [rolado, setRolado] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setRolado(window.scrollY > 4);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setNotifOpen(false);
+        setUserOpen(false);
+      }
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
   useEffect(() => {
     function onClick(e: MouseEvent) {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
@@ -36,13 +56,13 @@ export default function Header({ title, subtitle, icon, onOpenMenu }: HeaderProp
   }, []);
 
   return (
-    <header className="page-header">
+    <header className={`page-header ${rolado ? 'page-header-rolado' : ''}`}>
       {onOpenMenu && (
         <button className="mobile-menu-btn hide-desktop" onClick={onOpenMenu} aria-label="Abrir menu">
-          ☰
+          <MenuIcon width={22} height={22} />
         </button>
       )}
-      <div className="page-header-icon">{icon}</div>
+      <div className="page-header-icon" aria-hidden="true">{icon}</div>
       <div className="page-header-text">
         <h1>{title}</h1>
         <p>{subtitle}</p>
@@ -60,20 +80,30 @@ export default function Header({ title, subtitle, icon, onOpenMenu }: HeaderProp
             {alertas.length > 0 && <span className="header-icon-dot" />}
           </button>
           {notifOpen && (
-            <div className="popover-panel">
-              <div className="popover-title">Notificações</div>
+            <div className="popover-panel popover-notif" role="dialog" aria-label="Notificações">
+              <div className="popover-title">
+                Notificações {alertas.length > 0 && <span className="popover-contagem">{alertas.length}</span>}
+              </div>
               {alertas.length === 0 && <div className="popover-item">Nenhuma notificação no momento.</div>}
-              {alertas.slice(0, 6).map((n) => (
-                <div key={n.id} className="popover-item">
-                  {n.titulo}: {n.mensagem}
-                </div>
-              ))}
+              {alertas.slice(0, 6).map((n) => {
+                const Icone = n.severidade === 'critico' ? AlertOctagonIcon : n.severidade === 'ideal' ? InfoIcon : WarningIcon;
+                return (
+                  <div key={n.id} className={`popover-item popover-item-${n.severidade}`}>
+                    <Icone width={15} height={15} aria-hidden="true" />
+                    <span>
+                      <strong>{n.titulo}</strong>
+                      {n.mensagem}
+                    </span>
+                  </div>
+                );
+              })}
+              {alertas.length > 6 && <div className="popover-rodape">+ {alertas.length - 6} notificações</div>}
             </div>
           )}
         </div>
 
         <div className="header-popover" ref={userRef}>
-          <button className="header-avatar-btn" onClick={() => setUserOpen((v) => !v)} aria-label="Menu do usuário">
+          <button className="header-avatar-btn" onClick={() => setUserOpen((v) => !v)} aria-label="Menu do usuário" aria-expanded={userOpen}>
             <UserCircleIcon width={26} height={26} />
           </button>
           {userOpen && (

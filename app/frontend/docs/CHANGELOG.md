@@ -13,17 +13,44 @@ Registro do que foi feito no projeto, com base nos commits enviados ao GitHub (`
 
 ---
 
-## 30/10/2026 — Migração para o monorepo e integração com a API
+## 16/11/2026 — Evolução visual e de UX das três dashboards (não commitado)
 
-O frontend passou a viver em `app/frontend/` do repositório [devjoaopedr0/ecotech](https://github.com/devjoaopedr0/ecotech). A versão de lá ainda tinha a estrutura antiga (`src/pages`, `src/components`…), mas trazia a integração com o backend (commit `3dd43f3`, "conecta a camada de API ao backend"). Ela foi portada para a estrutura nova, com as três dashboards:
+**Design system**
+- `styles/theme.css`: tokens revisados (base levemente esverdeada, superfícies com mais contraste), status completos — normal, atenção, crítico, **offline** e **informativo** — tokens de movimento, elevação e foco; Inter + JetBrains Mono (`index.html`).
+- Status com forma própria além da cor: crítico = octógono, atenção = triângulo, normal = círculo com check, sem dados/offline = sinal cortado, informativo = "i" (`StatusBadge`, `EstadoBadge`, `SemaforoBadge`, novos ícones em `icons.tsx`).
+- `Card`: prop `subtitle` (a pergunta que o cartão/gráfico responde) e ícone em selo.
+- Microinterações: entrada das páginas em sequência, hover/pressão em botões e atalhos, menu e popovers animados, respeito a `prefers-reduced-motion`; foco visível global.
+- Novos: `Metrica` (valor + unidade + status + referência), `EstadosPagina` (esqueleto de carregamento e limite de erro com "Tentar novamente").
 
-- **Camada de API** (`src/compartilhado/api/`): cliente com Bearer, refresh automático no 401 e timeout; sessão JWT (`session.ts`); DTOs e mappers entre o backend e as telas. `VITE_API_KEY` removido.
-- **Login real** (`AuthContext`, `Login`): entrada por e-mail e senha. O nível da dashboard continua sendo aplicado no login e passa a ser guardado pelo **e-mail** (o cadastro também salva pelo e-mail).
-- **PlantsContext em dois modos:** sem `VITE_API_URL`, a simulação de sempre; com ela, os dados vêm do backend (ao entrar e a cada 15 s) e as alterações vão para a API. Os comandos de irrigação manuais continuam registrando *enviando / enviado / falhou* (`comandosIrrigacao`), agora com as chamadas `iniciarIrrigacao` / `pararIrrigacao` da API.
-- **Configurações:** troca de senha (mínimo de 8 caracteres, regra do backend) e notificações salvas pela API; o e-mail do perfil vem da sessão.
-- **Tipos:** `Sensor.dispositivoId`; `LeituraColetada.bruto` pode ser `null` (Relatórios mostra "—").
-- **Header / indicador de dados:** mostra "Conectado à API" quando `VITE_API_URL` está definido (antes era sempre "Dados simulados").
-- **README** unificado: o do monorepo (modo API, modo simulado, como rodar) com os níveis de dashboard e a estrutura de pastas nova. O `CHANGELOG.md` antigo de `app/frontend/` foi substituído por este (`docs/CHANGELOG.md`), que já continha o mesmo histórico.
+**Shell**
+- Menu lateral fixo na altura da tela (antes terminava no meio de páginas longas), item ativo com barra verde, rodapé com o nível do painel e a fonte de dados; `Esc` fecha o menu no celular.
+- Cabeçalho fixo com desfoque ao rolar, ícone de menu, notificações com ícone de gravidade e título.
+- Esqueleto na primeira abertura da sessão; falha de renderização de uma tela não derruba o app.
+
+**Intermediária**
+- **Saúde da Horta** (`SaudeHorta`): nota 0–100, faixa (Boa / Requer atenção / Crítica), frase simples e seis indicadores com contexto. Regra em `saudeDaHorta` (`utils/horta.ts`, testada em `utils/saude.test.ts`).
+- **Mapa da horta** (`MapaHorta`, modo simples): plantas por canteiro; ao tocar, painel com umidade na faixa ideal, temperatura, última leitura/irrigação, histórico de 24 h e o que fazer.
+- Início organizado em camadas: situação → onde agir → análise → decisão. A lista com busca/filtros continua em Plantas.
+- Atualizar leituras com retorno visual (girando → confirmação).
+
+**Avançada**
+- Linha de abertura com métricas contextualizadas (faixa ideal, dispersão entre plantas/sensores, status) e índice de saúde.
+- Alertas com rolagem interna ao lado do gráfico (antes esticavam a página) e dados técnicos recolhíveis.
+- **Mapa da horta · telemetria** (modo técnico): código do sensor, leitura bruta (ADC), limites, taxa de secagem, instalação, modo de irrigação; "Abrir no Monitor".
+- Monitor: cartão da planta centralizado verticalmente.
+
+**Compartilhado**
+- Alertas mostram o que aconteceu, por quê e **o que fazer** (destacado).
+- Gráfico de umidade com a faixa ideal ao fundo e animação discreta.
+- Tabela com modo cartão no celular (`cartoesNoCelular`) e `caption` acessível.
+- Login com painel de marca em telas largas.
+- Básica: resumo informa urgentes e tarefas do dia ("1 coisa para fazer agora e 4 coisas para hoje").
+
+**Responsividade**: métricas em 2 colunas no celular, atalhos em faixa horizontal, canteiros com plantas lado a lado, painel da planta rola até a vista ao selecionar.
+
+Testes: 85 passando (6 novos para o índice de saúde; caso novo no teste do resumo da básica).
+
+---
 
 ## 30/10/2026 — Dashboard básica (`e6864c2`)
 
@@ -170,3 +197,11 @@ O frontend passou a viver em `app/frontend/` do repositório [devjoaopedr0/ecote
 - Início: banner de situação, 3 números (umidade, temperatura, sensores), até 3 avisos com "O que fazer" e um gráfico de 24 h.
 - Plantas: um cartão por planta (sem tabela, busca ou filtros). Alertas: só os que exigem ação.
 - Removidas Monitoramento e Dispositivos (redirecionam para Plantas e Início). A avançada não foi alterada.
+
+## Cadastro em 4 etapas
+
+- `/cadastro` refeito: Boas-vindas → Dados pessoais → Nível de visualização → Cadastro concluído, com indicador de progresso e layout responsivo.
+- O questionário "nível de conhecimento em tecnologia" foi substituído pela escolha direta do nível da dashboard (Básico, Intermediário, Avançado), que é salvo na conta.
+- Validação ativada por etapa. Novo `ecotechApi.cadastrarUsuario` (`POST /usuarios` com `VITE_API_URL`; registro no navegador no modo simulado, recusando usuário/e-mail repetidos).
+- Ao concluir, o usuário já entra e é levado à dashboard escolhida.
+- Testes: `cadastro.test.ts` (validação e cadastro simulado).

@@ -8,7 +8,7 @@ import type { ItemAlerta } from './AlertList';
  * Quanto do alerta é exibido:
  *  - resumo:    título, mensagem curta e a ação recomendada (intermediária, Visão Geral)
  *  - padrao:    resumo + estado, horário e planta (intermediária, página Alertas)
- *  - detalhado: padrao + indicador, valor atual e limite de referência (avançada)
+ *  - detalhado: padrao + indicador, valor atual e limite de referência (avançada), em "Dados técnicos" recolhível
  */
 export type NivelAlerta = 'resumo' | 'padrao' | 'detalhado';
 
@@ -18,26 +18,27 @@ interface Opcoes {
   linkPlanta?: (planta: Plant, texto: string) => ReactNode;
 }
 
-/** Converte um alerta do sistema no item exibido pelo AlertList, igual nas duas dashboards (muda só a profundidade). */
+/** Converte um alerta do sistema no item exibido pelo AlertList: o que aconteceu, por quê e o que fazer. */
 export function itemDoAlerta(a: Alerta, plantas: Plant[], { nivel = 'padrao', linkPlanta }: Opcoes = {}): ItemAlerta {
   const planta = a.plantaId ? plantas.find((p) => p.id === a.plantaId) : undefined;
   const linhas: ReactNode[] = [];
+  let detalhes: ReactNode | undefined;
 
+  if (a.acao) linhas.push(<span className="meta-action"><strong>O que fazer:</strong> {a.acao}</span>);
   if (nivel !== 'resumo') {
-    const quando = a.criadoEm > 0 ? formatarDataHora(a.criadoEm) : 'condição ativa agora (sem horário de início registrado)';
+    const quando = a.criadoEm > 0 ? formatarDataHora(a.criadoEm) : 'condição ativa agora';
     const textoPlanta = `Planta: ${planta?.nome ?? ''}`;
     linhas.push(
       <>
-        {alertaRequerAcao(a) ? 'Estado: ativo' : 'Estado: informativo'} · {quando}
+        {alertaRequerAcao(a) ? 'Ativo' : 'Informativo'} · {quando}
         {planta && <> · {linkPlanta ? linkPlanta(planta, textoPlanta) : textoPlanta}</>}
       </>
     );
   }
   if (nivel === 'detalhado') {
-    const dados = [a.indicador && `Indicador: ${a.indicador}`, a.valorAtual && `Valor atual: ${a.valorAtual}`, a.limite && `Limite de referência: ${a.limite}`].filter(Boolean);
-    linhas.push(dados.length ? dados.join(' · ') : 'Sem valor de referência registrado para este alerta.');
+    const dados = [a.indicador && `Indicador: ${a.indicador}`, a.valorAtual && `Valor atual: ${a.valorAtual}`, a.limite && `Limite de referência: ${a.limite}`].filter(Boolean) as string[];
+    detalhes = dados.length ? dados.map((d) => <span key={d} className="meta-line">{d}</span>) : <span className="meta-line">Sem valor de referência registrado.</span>;
   }
-  if (a.acao) linhas.push(<span className="meta-action"><strong>O que fazer:</strong> {a.acao}</span>);
 
   return {
     id: a.id,
@@ -46,5 +47,6 @@ export function itemDoAlerta(a: Alerta, plantas: Plant[], { nivel = 'padrao', li
     titulo: a.titulo,
     mensagem: a.mensagem,
     meta: linhas.length ? linhas.map((l, i) => <span key={i} className="meta-line">{l}</span>) : undefined,
+    detalhes,
   };
 }

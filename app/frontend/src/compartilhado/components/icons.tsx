@@ -154,3 +154,38 @@ export const CloudRainIcon = (p: IconProps) => (
 export const CameraIcon = (p: IconProps) => (
   <svg {...base(p)}><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" /><circle cx="12" cy="13" r="3.5" /></svg>
 );
+
+/* ---- Sistema de status: cada estado tem forma própria (não depende só da cor) ---- */
+/** Crítico: octógono (forma de "pare"), diferente do triângulo de atenção. */
+export const AlertOctagonIcon = (p: IconProps) => (
+  <svg {...base(p)}><path d="M8.2 3h7.6L21 8.2v7.6L15.8 21H8.2L3 15.8V8.2L8.2 3Z" /><path d="M12 8v4.5" /><path d="M12 16h.01" /></svg>
+);
+/** Normal: círculo com check. */
+export const CheckCircleIcon = (p: IconProps) => (
+  <svg {...base(p)}><circle cx="12" cy="12" r="9" /><path d="m8 12.3 2.7 2.7L16 9.5" /></svg>
+);
+/** Offline / sem comunicação. */
+export const WifiOffIcon = (p: IconProps) => (
+  <svg {...base(p)}><path d="M3 3l18 18" /><path d="M8.5 16.4a5 5 0 0 1 7 0" /><path d="M5 12.9a10 10 0 0 1 4.2-2.6M14.8 10.3A10 10 0 0 1 19 12.9" /><path d="M2 9.3a15 15 0 0 1 4.4-2.8M10.5 5.1A15 15 0 0 1 22 9.3" /><path d="M12 20h.01" /></svg>
+);
+/** Informativo. */
+export const InfoIcon = (p: IconProps) => (
+  <svg {...base(p)}><circle cx="12" cy="12" r="9" /><path d="M12 11v5" /><path d="M12 7.8h.01" /></svg>
+);
+export const MenuIcon = (p: IconProps) => (
+  <svg {...base(p)}><path d="M4 6h16M4 12h16M4 18h11" /></svg>
+);
+export const CloseIcon = (p: IconProps) => (
+  <svg {...base(p)}><path d="M6 6l12 12M18 6 6 18" /></svg>
+);
+/** Mapa / planta baixa da horta (canteiros). */
+export const MapIcon = (p: IconProps) => (
+  <svg {...base(p)}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 12h18M12 4v16" /></svg>
+);
+/** Pulso / telemetria. */
+export const ActivityIcon = (p: IconProps) => (
+  <svg {...base(p)}><path d="M3 12h4l2.5-6 5 12 2.5-6h4" /></svg>
+);
+export const RefreshIcon = (p: IconProps) => (
+  <svg {...base(p)}><path d="M20 11a8 8 0 0 0-14.7-4.3L4 8" /><path d="M4 4v4h4" /><path d="M4 13a8 8 0 0 0 14.7 4.3L20 16" /><path d="M20 20v-4h-4" /></svg>
+);

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { usePlants } from '../../context/PlantsContext';
 import { formatarData, formatarDataHora, formatarDiaMes, formatarHora } from '../../utils/format';
 import { periodoPorId, serieUmidade, type PeriodoId } from '../../utils/horta';
@@ -20,11 +20,18 @@ interface Props {
  * Mostra o que o sistema realmente registrou; sem dados, mostra estado vazio.
  */
 export default function GraficoUmidade({ periodo, plantaId, nomePlanta, limites, altura = 230 }: Props) {
-  const { leituras, consumo, agora } = usePlants();
+  const { leituras, consumo, agora, plantas } = usePlants();
   const serie = useMemo(() => serieUmidade(periodo, leituras, consumo, agora, plantaId), [periodo, leituras, consumo, agora, plantaId]);
   const porPlanta = !!plantaId && !serie.indisponivelParaPlanta;
   const nomeSerie = porPlanta ? (nomePlanta ?? 'Planta') : serie.granularidade === 'dia' ? 'Média diária da horta' : 'Média da horta';
   const { pontos, granularidade } = serie;
+  // Faixa ideal ao fundo: da planta exibida ou a média das faixas da horta. Responde "está dentro do ideal?".
+  const faixa = useMemo(() => {
+    const alvo = porPlanta ? plantas.filter((p) => p.id === plantaId) : plantas;
+    if (alvo.length === 0) return null;
+    const m = (f: (p: (typeof plantas)[number]) => number) => Math.round(alvo.reduce((s, p) => s + f(p), 0) / alvo.length);
+    return { min: m((p) => p.faixaMin), max: m((p) => p.faixaMax) };
+  }, [plantas, plantaId, porPlanta]);
 
   if (pontos.length === 0) {
     return <EmptyState titulo="Sem medições neste período" texto="O sistema não tem leituras de umidade registradas para o período e a seleção escolhidos." />;
@@ -40,24 +47,27 @@ export default function GraficoUmidade({ periodo, plantaId, nomePlanta, limites,
       <div className="chart-wrap">
         <ResponsiveContainer width="100%" height={altura}>
           <LineChart data={pontos}>
-            <CartesianGrid stroke="var(--border-subtle)" vertical={false} />
+            <CartesianGrid stroke="var(--border-subtle)" strokeDasharray="2 4" vertical={false} />
+            {faixa && <ReferenceArea y1={faixa.min} y2={faixa.max} fill="var(--status-ideal-fg)" fillOpacity={0.07} stroke="none" ifOverflow="extendDomain" />}
             <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']} tickFormatter={fmtTick} stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} minTickGap={28} />
             <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
             <Tooltip
-              contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-strong)', borderRadius: 10 }}
+              contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-strong)', borderRadius: 10, boxShadow: 'var(--shadow-pop)', fontSize: 13 }}
+              cursor={{ stroke: 'var(--border-strong)', strokeDasharray: '3 3' }}
               labelStyle={{ color: 'var(--text-secondary)' }}
               labelFormatter={fmtRotulo}
               formatter={(v) => `${v}%`}
             />
             {porPlanta && limites && <ReferenceLine y={limites.minima} stroke="var(--text-muted)" strokeDasharray="4 4" />}
             {porPlanta && limites && <ReferenceLine y={limites.critica} stroke="var(--status-abaixo-fg)" strokeDasharray="4 4" />}
-            <Line type="monotone" dataKey="valor" name={nomeSerie} stroke="#22c55e" strokeWidth={2.5} dot={pontos.length <= 12 ? { r: 3 } : false} isAnimationActive={false} />
+            <Line type="monotone" dataKey="valor" name={nomeSerie} stroke="#22c55e" strokeWidth={2.5} dot={pontos.length <= 12 ? { r: 3, strokeWidth: 0, fill: '#22c55e' } : false} activeDot={{ r: 5, strokeWidth: 2, stroke: 'var(--bg-card)' }} isAnimationActive animationDuration={700} />
             {porPlanta && <Line type="monotone" dataKey="comparacao" name="Média da horta" stroke="#2fb6f0" strokeWidth={2} strokeDasharray="5 4" dot={false} connectNulls isAnimationActive={false} />}
           </LineChart>
         </ResponsiveContainer>
       </div>
       <div className="chart-legend">
         <span><span className="legend-dot legend-dot-green" /> {nomeSerie}</span>
+        {faixa && <span><span className="legend-faixa" /> Faixa ideal{porPlanta ? '' : ' (média)'} {faixa.min}–{faixa.max}%</span>}
         {porPlanta && <span><span className="legend-dot legend-dot-blue" /> Média da horta</span>}
         {porPlanta && limites && <span><span className="legend-dash" /> Umidade mínima ({limites.minima}%)</span>}
         {porPlanta && limites && <span><span className="legend-dash legend-dash-critical" /> Umidade crítica ({limites.critica}%)</span>}

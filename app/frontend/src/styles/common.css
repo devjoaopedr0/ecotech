@@ -1,5 +1,5 @@
 .page-body {
-  padding: 0 32px 40px;
+  padding: 6px 32px 48px;
   display: flex;
   flex-direction: column;
   gap: 22px;
@@ -68,6 +68,62 @@
 .chart-wrap { width: 100%; }
 
 @media (max-width: 900px) {
-  .page-body { padding: 0 16px 30px; gap: 16px; }
+  .page-body { padding: 4px 16px 32px; gap: 16px; }
   .dropdown-menu { max-width: calc(100vw - 32px); }
 }
+
+/* ================================================================== */
+/* Microinterações e estados (compartilhados pelos três níveis)        */
+/* ================================================================== */
+
+/* Entrada da página: blocos sobem levemente em sequência (sutil, 280 ms). */
+@keyframes eco-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.page-body > * { animation: eco-rise 0.32s var(--ease-out) both; }
+.page-body > *:nth-child(2) { animation-delay: 30ms; }
+.page-body > *:nth-child(3) { animation-delay: 60ms; }
+.page-body > *:nth-child(4) { animation-delay: 90ms; }
+.page-body > *:nth-child(5) { animation-delay: 120ms; }
+.page-body > *:nth-child(n + 6) { animation-delay: 150ms; }
+
+/* Valor que acabou de mudar (indicadores ao vivo). */
+@keyframes eco-flash { from { color: var(--accent-cyan); } to { color: inherit; } }
+.valor-atualizado { animation: eco-flash 0.9s var(--ease-out); }
+
+/* Skeleton de carregamento */
+@keyframes eco-shimmer { from { background-position: -320px 0; } to { background-position: 320px 0; } }
+.skeleton {
+  display: block;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--bg-card-alt) 0, var(--bg-hover) 160px, var(--bg-card-alt) 320px) var(--bg-card-alt);
+  background-size: 640px 100%;
+  animation: eco-shimmer 1.3s linear infinite;
+}
+.skeleton-page { display: flex; flex-direction: column; gap: 18px; padding: 26px 32px 40px; }
+.skeleton-row { display: grid; gap: 18px; grid-template-columns: 1.6fr repeat(3, 1fr); }
+.skeleton-duo { display: grid; gap: 18px; grid-template-columns: 1.7fr 1fr; }
+@media (max-width: 900px) {
+  .skeleton-page { padding: 18px 16px 30px; }
+  .skeleton-row { grid-template-columns: 1fr 1fr; }
+  .skeleton-row > :first-child { grid-column: 1 / -1; }
+  .skeleton-duo { grid-template-columns: 1fr; }
+}
+
+/* Erro com nova tentativa */
+.erro-estado { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 48px 20px; margin: 24px 32px; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-secondary); }
+.erro-estado svg { color: var(--status-abaixo-fg); }
+.erro-estado strong { color: var(--text-primary); font-size: 17px; }
+.erro-estado p { margin: 0; max-width: 46ch; font-size: 14px; }
+.erro-estado code { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+
+/* Rótulo de camada de informação ("Situação", "Análise", "Decisão"): orienta a leitura da página. */
+.camada { display: flex; align-items: baseline; gap: 10px; margin: 6px 0 -8px; }
+.camada h2 { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+.camada p { margin: 0; font-size: 12.5px; color: var(--text-muted); }
+.camada::after { content: ''; flex: 1; height: 1px; background: var(--border-subtle); align-self: center; }
+
+/* Painel com rolagem interna (listas longas dentro de cartões lado a lado). */
+.painel-rolagem { max-height: var(--altura-painel, 420px); overflow-y: auto; margin-right: -8px; padding-right: 8px; overscroll-behavior: contain; }
+@media (max-width: 900px) { .painel-rolagem { max-height: none; overflow: visible; margin-right: 0; padding-right: 0; } }
+
+.empty-state { animation: eco-rise 0.3s var(--ease-out) both; }
+.empty-state svg { opacity: 0.8; }

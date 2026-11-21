@@ -1,4 +1,4 @@
-.monitor-plant-card { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+.monitor-plant-card { display: flex; align-items: center; align-content: center; gap: 22px; flex-wrap: wrap; }
 .monitor-plant-ring {
   width: 92px;
   height: 92px;

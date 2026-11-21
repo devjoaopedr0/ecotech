@@ -427,3 +427,67 @@ export function compararPeriodos(consumo: ConsumoDia[], dias: number): Comparaca
     alertas: comparar(soma(atual.map((d) => d.alertas)), soma(anterior.map((d) => d.alertas))),
   };
 }
+
+/* ------------------------------------------------------------------ índice de saúde da horta */
+
+export type FaixaSaude = 'boa' | 'atencao' | 'critica' | 'indisponivel';
+
+export interface SaudeDaHorta {
+  /** 0–100; null quando nenhuma planta tem leitura confiável (não se afirma saúde sem dados). */
+  pontuacao: number | null;
+  faixa: FaixaSaude;
+  rotulo: string;
+  /** Frase curta, em linguagem simples, que explica a nota. */
+  frase: string;
+  /** Plantas com leitura confiável / total cadastrado (0–1). */
+  cobertura: number;
+}
+
+/** Peso de cada estado na nota. Planta sem dados não entra na média, mas reduz a cobertura (e a nota). */
+export const PESO_SAUDE: Record<Exclude<EstadoPlanta, 'sem_dados'>, number> = { saudavel: 100, atencao: 60, critico: 15 };
+/** Quanto a nota cai se nenhuma planta tiver leitura (proporcional às plantas sem dados). */
+export const PENALIDADE_COBERTURA = 15;
+/** Nota máxima enquanto houver planta em estado crítico (abaixo do limite da faixa "crítica"). */
+export const TETO_COM_CRITICA = 59;
+
+/**
+ * Índice de saúde (0–100) a partir dos mesmos indicadores das dashboards:
+ *  média ponderada dos estados das plantas com leitura (saudável 100 · atenção 60 · crítico 15)
+ *  menos até 15 pontos pela fração de plantas sem leitura confiável.
+ * Regra simples e explicável — o objetivo é resumir, não substituir os estados de cada planta.
+ */
+export function saudeDaHorta(ind: Indicadores): SaudeDaHorta {
+  const comLeitura = ind.saudaveis + ind.atencao + ind.criticas;
+  const cobertura = ind.totalPlantas ? comLeitura / ind.totalPlantas : 0;
+  if (comLeitura === 0) {
+    return {
+      pontuacao: null,
+      faixa: 'indisponivel',
+      rotulo: 'Sem dados',
+      frase: ind.totalPlantas === 0 ? 'Cadastre plantas para acompanhar a saúde da horta.' : 'Nenhuma planta tem leitura confiável agora. Verifique os sensores.',
+      cobertura,
+    };
+  }
+  const media = (ind.saudaveis * PESO_SAUDE.saudavel + ind.atencao * PESO_SAUDE.atencao + ind.criticas * PESO_SAUDE.critico) / comLeitura;
+  const bruta = Math.max(0, Math.min(100, Math.round(media - PENALIDADE_COBERTURA * (1 - cobertura))));
+  // Planta crítica sempre deixa a horta na faixa crítica: a nota é limitada para o número e o rótulo concordarem.
+  const pontuacao = ind.criticas > 0 ? Math.min(bruta, TETO_COM_CRITICA) : bruta;
+
+  const faixa: FaixaSaude = pontuacao < 60 ? 'critica' : pontuacao < 80 ? 'atencao' : 'boa';
+  const precisam = ind.atencao + ind.criticas;
+  let frase: string;
+  if (faixa === 'boa') frase = ind.semDados > 0 ? 'As plantas medidas estão na faixa ideal, mas há sensores sem leitura.' : 'Todas as plantas estão dentro da faixa ideal.';
+  else if (ind.criticas > 0) frase = `${ind.criticas === 1 ? '1 planta precisa' : `${ind.criticas} plantas precisam`} de água agora${precisam > ind.criticas ? ` e outras ${precisam - ind.criticas} pedem atenção` : ''}.`;
+  else frase = ind.saudaveis >= precisam ? 'A maioria das plantas está na faixa ideal; algumas pedem atenção.' : 'Boa parte das plantas está fora da faixa ideal.';
+
+  return { pontuacao, faixa, rotulo: faixa === 'boa' ? 'Boa' : faixa === 'atencao' ? 'Requer atenção' : 'Crítica', frase, cobertura };
+}
+
+/** Faixa ideal média (faixaMin–faixaMax) das plantas com leitura confiável, para dar contexto à umidade média. */
+export function faixaIdealMedia(monitoradas: PlantaMonitorada[]): { min: number; max: number } | null {
+  const com = monitoradas.filter((m) => m.estado !== 'sem_dados');
+  const base = com.length ? com : monitoradas;
+  if (base.length === 0) return null;
+  const media = (f: (m: PlantaMonitorada) => number) => Math.round(base.reduce((s, m) => s + f(m), 0) / base.length);
+  return { min: media((m) => m.planta.faixaMin), max: media((m) => m.planta.faixaMax) };
+}

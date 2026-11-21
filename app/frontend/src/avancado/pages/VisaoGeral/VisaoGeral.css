@@ -22,3 +22,9 @@
 .weather-main > div { display: flex; flex-direction: column; gap: 2px; }
 .weather-main strong { font-size: 28px; line-height: 1; color: var(--text-primary); }
 .weather-main span { font-size: 13px; color: var(--text-secondary); }
+/* Alertas lado a lado com o gráfico: a lista rola dentro do cartão em vez de esticar a página. */
+.vg-alertas { --altura-painel: 330px; }
+.vg-mid-row { align-items: stretch; }
+.quick-item { transition: border-color var(--dur-fast) ease; }
+.quick-item:hover { border-color: var(--border-strong); }
+.weather-main svg { flex: none; }

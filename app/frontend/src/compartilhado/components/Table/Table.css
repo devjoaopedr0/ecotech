@@ -33,3 +33,19 @@
   .app-table .status-badge { font-size: 11.5px; padding: 3px 8px; gap: 4px; }
   .app-table .status-badge svg { display: none; }
 }
+
+.app-table thead th { letter-spacing: 0.01em; }
+.app-table tbody tr { transition: background var(--dur-fast) ease; }
+
+/* Modo cartão no celular (opt-in): cada linha vira um bloco "rótulo: valor", sem rolagem horizontal. */
+@media (max-width: 560px) {
+  .app-table-cartoes, .app-table-cartoes tbody, .app-table-cartoes tr, .app-table-cartoes td { display: block; width: 100%; }
+  .app-table-cartoes thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .app-table-cartoes tbody { display: flex; flex-direction: column; gap: 8px; }
+  .app-table-cartoes tbody tr { padding: 10px 12px; border-radius: var(--radius-sm); background: var(--bg-card-alt); border: 1px solid var(--border-subtle); }
+  .app-table-cartoes tbody td { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 5px 0 !important; border-bottom: none; white-space: normal; text-align: right !important; }
+  .app-table-cartoes tbody td::before { content: attr(data-label); font-size: 12px; font-weight: 600; color: var(--text-muted); text-align: left; }
+  .app-table-cartoes tbody td:first-child { font-weight: 700; font-size: 14px; }
+  .app-table-cartoes .status-badge svg { display: inline; }
+  .app-table-cartoes tbody td.table-empty::before { content: none; }
+}

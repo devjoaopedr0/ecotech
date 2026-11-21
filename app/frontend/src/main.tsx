@@ -4,6 +4,7 @@ import App from './App';
 import './styles/theme.css';
 import './styles/common.css';
 import './styles/dashboard.css';
+import './compartilhado/components/Button/Button.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

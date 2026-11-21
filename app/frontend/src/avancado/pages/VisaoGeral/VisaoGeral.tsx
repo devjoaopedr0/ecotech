@@ -1,10 +1,14 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../../../compartilhado/components/Header';
 import Card from '../../../compartilhado/components/Card';
 import Table from '../../../compartilhado/components/Table';
 import StatusBadge from '../../../compartilhado/components/StatusBadge';
 import GraficoUmidade from '../../../compartilhado/components/GraficoUmidade';
 import ResumoHorta from '../../../compartilhado/components/ResumoHorta';
+import MapaHorta from '../../../compartilhado/components/MapaHorta';
+import EmptyState from '../../../compartilhado/components/EmptyState';
+import { ROTAS } from '../../../routes/paths';
 import AlertList, { itemDoAlerta } from '../../../compartilhado/components/AlertList';
 import LimitesETendencia from '../../components/LimitesETendencia';
 import {
@@ -21,6 +25,7 @@ import {
   CloudRainIcon,
   SunIcon,
   ChevronDownIcon,
+  MapIcon,
 } from '../../../compartilhado/components/icons';
 import { useHorta } from '../../../compartilhado/hooks/useHorta';
 import { ultimasLeituras, type PeriodoId } from '../../../compartilhado/utils/horta';
@@ -36,7 +41,12 @@ const PERIODOS: { value: PeriodoId; label: string }[] = [
 const CONDICAO = { ensolarado: 'Ensolarado', parcial: 'Parcialmente nublado', nublado: 'Nublado', chuva: 'Chuva' } as const;
 
 export default function VisaoGeral({ openMenu }: { openMenu?: () => void }) {
-  const { plantas, leituras: leiturasColetadas, alertas, algumaIrrigando, resumoConsumo, recomendacoes, clima, eficiencia, indicadores: ind } = useHorta();
+  const { plantas, leituras: leiturasColetadas, alertas, algumaIrrigando, resumoConsumo, recomendacoes, clima, eficiencia, indicadores: ind, setPlantaSelecionadaId } = useHorta();
+  const navigate = useNavigate();
+  const abrirNoMonitor = (id: string) => {
+    setPlantaSelecionadaId(id);
+    navigate(ROTAS.monitor);
+  };
   const [periodo, setPeriodo] = useState<PeriodoId>('24h');
   const [periodoOpen, setPeriodoOpen] = useState(false);
 
@@ -54,39 +64,13 @@ export default function VisaoGeral({ openMenu }: { openMenu?: () => void }) {
         <ResumoHorta />
 
         <div className="vg-mid-row">
-          <Card title="Recomendações" icon={<LeafIcon width={18} height={18} />}>
-            {recomendacoes.length === 0 ? (
-              <div className="empty-state">
-                <HealthyIcon width={30} height={30} />
-                <strong>Nenhuma recomendação</strong>
-                <span>A horta está dentro do esperado.</span>
-              </div>
-            ) : (
-              <AlertList alertas={recomendacoes} />
-            )}
-          </Card>
-
-          <Card title="Previsão do tempo" icon={<CloudIcon width={18} height={18} />}>
-            <div className="weather-main">
-              {clima.condicao === 'chuva' ? <CloudRainIcon width={34} height={34} /> : clima.condicao === 'ensolarado' ? <SunIcon width={34} height={34} /> : <CloudIcon width={34} height={34} />}
-              <div>
-                <strong>{clima.temperaturaAtual}°C</strong>
-                <span>{CONDICAO[clima.condicao]}</span>
-              </div>
-            </div>
-            <div className="info-row"><span>Máxima / Mínima</span><strong>{clima.maxima}° / {clima.minima}°</strong></div>
-            <div className="info-row"><span>Probabilidade de chuva</span><strong>{clima.probabilidadeChuva}%</strong></div>
-            <div className="info-row"><span>Chuva prevista</span><strong>{clima.chuvaEmHoras === null ? 'Sem chuva' : `em ~${clima.chuvaEmHoras} h`}</strong></div>
-          </Card>
-        </div>
-
-        <div className="vg-mid-row">
           <Card
             title="Umidade ao longo do tempo"
+            subtitle="Como a umidade média mudou em relação à faixa ideal?"
             icon={<DropletIcon width={18} height={18} />}
             action={
               <div className="dropdown">
-                <button className="dropdown-trigger" onClick={() => setPeriodoOpen((v) => !v)}>
+                <button className="dropdown-trigger" onClick={() => setPeriodoOpen((v) => !v)} aria-expanded={periodoOpen} aria-haspopup="listbox">
                   {PERIODOS.find((p) => p.value === periodo)?.label}
                   <ChevronDownIcon width={15} height={15} />
                 </button>
@@ -95,7 +79,7 @@ export default function VisaoGeral({ openMenu }: { openMenu?: () => void }) {
                     {PERIODOS.map((p) => (
                       <button
                         key={p.value}
-                        className="dropdown-item"
+                        className={`dropdown-item ${p.value === periodo ? 'dropdown-item-active' : ''}`}
                         onClick={() => {
                           setPeriodo(p.value);
                           setPeriodoOpen(false);
@@ -109,28 +93,61 @@ export default function VisaoGeral({ openMenu }: { openMenu?: () => void }) {
               </div>
             }
           >
-            <GraficoUmidade periodo={periodo} />
+            <GraficoUmidade periodo={periodo} altura={260} />
           </Card>
 
-          <Card title="Alertas importantes" icon={<BellIcon width={18} height={18} />}>
+          <Card
+            title="Alertas importantes"
+            subtitle={alertas.length ? `${alertas.length} ocorrências · mais graves primeiro` : 'O que exige ação agora?'}
+            icon={<BellIcon width={18} height={18} />}
+            className="vg-alertas"
+          >
             {alertas.length === 0 ? (
-              <div className="empty-state">
-                <BellIcon width={30} height={30} />
-                <strong>Nenhum alerta no momento</strong>
-                <span>Tudo funcionando normalmente.</span>
-              </div>
+              <EmptyState icone={<BellIcon width={30} height={30} />} titulo="Nenhum alerta no momento" texto="Todos os sensores e plantas estão dentro dos limites configurados." />
             ) : (
-              <>
-                <AlertList alertas={alertas.map((a) => itemDoAlerta(a, plantas, { nivel: 'detalhado' }))} limite={8} />
-                {alertas.length > 8 && <small className="api-hint">+ {alertas.length - 8} alertas de menor prioridade</small>}
-              </>
+              <div className="painel-rolagem" tabIndex={0} aria-label="Lista de alertas (role para ver mais)">
+                <AlertList alertas={alertas.map((a) => itemDoAlerta(a, plantas, { nivel: 'detalhado' }))} />
+              </div>
             )}
           </Card>
         </div>
 
+        <Card
+          title="Mapa da horta · telemetria"
+          subtitle="Estado de cada planta por canteiro, com sensor, leitura bruta e parâmetros"
+          icon={<MapIcon width={18} height={18} />}
+        >
+          <MapaHorta modo="tecnico" onAbrir={abrirNoMonitor} rotuloAbrir="Abrir no Monitor" />
+        </Card>
+
+        <div className="vg-mid-row">
+          <Card title="Recomendações" subtitle="Ações sugeridas a partir de clima, tendência e consumo" icon={<LeafIcon width={18} height={18} />}>
+            {recomendacoes.length === 0 ? (
+              <EmptyState icone={<HealthyIcon width={30} height={30} />} titulo="Nenhuma recomendação" texto="A horta está dentro do esperado." />
+            ) : (
+              <AlertList alertas={recomendacoes} />
+            )}
+          </Card>
+
+          <Card title="Previsão do tempo" subtitle="Afeta a decisão de irrigar" icon={<CloudIcon width={18} height={18} />}>
+            <div className="weather-main">
+              {clima.condicao === 'chuva' ? <CloudRainIcon width={34} height={34} /> : clima.condicao === 'ensolarado' ? <SunIcon width={34} height={34} /> : <CloudIcon width={34} height={34} />}
+              <div>
+                <strong>{clima.temperaturaAtual}°C</strong>
+                <span>{CONDICAO[clima.condicao]}</span>
+              </div>
+            </div>
+            <div className="info-row"><span>Máxima / Mínima</span><strong>{clima.maxima}° / {clima.minima}°</strong></div>
+            <div className="info-row"><span>Probabilidade de chuva</span><strong>{clima.probabilidadeChuva}%</strong></div>
+            <div className="info-row"><span>Chuva prevista</span><strong>{clima.chuvaEmHoras === null ? 'Sem chuva' : `em ~${clima.chuvaEmHoras} h`}</strong></div>
+          </Card>
+        </div>
+
         <div className="vg-bottom-row">
-          <Card title="Últimas leituras" icon={<ListIcon width={18} height={18} />}>
+          <Card title="Últimas leituras" subtitle="Leitura mais recente de cada sensor de umidade" icon={<ListIcon width={18} height={18} />}>
             <Table
+              cartoesNoCelular
+              legenda="Última leitura de umidade por planta"
               rowKey={(r) => r.planta.id}
               rows={leituras}
               columns={[
@@ -142,7 +159,7 @@ export default function VisaoGeral({ openMenu }: { openMenu?: () => void }) {
             />
           </Card>
 
-          <Card title="Resumo rápido" icon={<GridIcon width={18} height={18} />}>
+          <Card title="Resumo rápido" subtitle="Indicadores de operação e eficiência" icon={<GridIcon width={18} height={18} />}>
             <div className="quick-grid">
               <div className="quick-item">
                 <LeafIcon width={17} height={17} />

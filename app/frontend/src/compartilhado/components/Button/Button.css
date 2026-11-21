@@ -9,9 +9,11 @@
   font-weight: 600;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: filter 0.15s ease, transform 0.05s ease;
+  min-height: 40px;
+  transition: filter var(--dur-fast) ease, transform 0.08s ease, border-color var(--dur-fast) ease, background var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
 }
-.btn:active { transform: translateY(1px); }
+.btn:active:not(:disabled) { transform: translateY(1px) scale(0.99); }
+.btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-full { width: 100%; }
 
@@ -19,7 +21,7 @@
   background: linear-gradient(90deg, var(--accent-green-strong), var(--accent-blue-strong));
   color: #062015;
 }
-.btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
+.btn-primary:hover:not(:disabled) { filter: brightness(1.08); box-shadow: 0 6px 18px -8px rgba(34, 197, 94, 0.55); }
 
 .btn-secondary {
   background: var(--bg-input);

@@ -70,7 +70,8 @@ describe('resumo da horta', () => {
   it('diz se está tudo bem, se há algo para conferir ou algo urgente', () => {
     expect(resumoBasico(3, [])).toMatchObject({ nivel: 'ok', titulo: 'Está tudo bem com sua horta' });
     expect(resumoBasico(3, [tarefa(false)])).toMatchObject({ nivel: 'atencao', texto: '1 coisa para conferir.' });
-    expect(resumoBasico(3, [tarefa(true), tarefa(true), tarefa(false)])).toMatchObject({ nivel: 'critico', texto: '2 coisas para fazer agora.' });
+    expect(resumoBasico(3, [tarefa(true), tarefa(true), tarefa(false)])).toMatchObject({ nivel: 'critico', texto: '2 coisas para fazer agora e 1 coisa para hoje.' });
+    expect(resumoBasico(3, [tarefa(true)])).toMatchObject({ nivel: 'critico', texto: '1 coisa para fazer agora.' });
     expect(resumoBasico(0, []).titulo).toBe('Nenhuma planta cadastrada');
   });
 });

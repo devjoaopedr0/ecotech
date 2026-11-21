@@ -1,6 +1,9 @@
 import type { ReactNode, SVGProps } from 'react';
 import { ROTAS } from '../../../routes/paths';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { FONTE_DADOS } from '../../utils/fonteDados';
+import { ROTULO_NIVEL } from '../../utils/nivel';
 import { HomeIcon, DashboardIcon, DropletIcon, LeafIcon, WifiIcon, DocumentIcon, GearIcon } from '../icons';
 import './Sidebar.css';
 
@@ -32,10 +35,11 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ onNavigate, items = NAV_ITEMS, footer }: SidebarProps) {
+  const { nivel } = useAuth();
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
+        <svg width="38" height="38" viewBox="0 0 42 42" fill="none" aria-hidden="true">
           <path d="M6 21c0-10 8-16 24-16 0 15-7 24-17 24-4 0-7-2-7-8Z" stroke="url(#g1)" strokeWidth="2.2" fill="none" />
           <path d="M11 30c4-6 9-12 17-17" stroke="url(#g1)" strokeWidth="2.2" strokeLinecap="round" />
           <defs>
@@ -54,7 +58,7 @@ export default function Sidebar({ onNavigate, items = NAV_ITEMS, footer }: Sideb
         </div>
       </div>
 
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" aria-label="Menu principal">
         {items.map(({ to, label, icon: Icon, end, badge }) => (
           <NavLink
             key={to}
@@ -73,7 +77,16 @@ export default function Sidebar({ onNavigate, items = NAV_ITEMS, footer }: Sideb
           </NavLink>
         ))}
       </nav>
-      {footer && <div className="sidebar-footer">{footer}</div>}
+      <div className="sidebar-footer">
+        {footer}
+        <div className="sidebar-contexto">
+          <span className="sidebar-nivel">Painel {ROTULO_NIVEL[nivel]}</span>
+          <span className="sidebar-fonte" title={FONTE_DADOS.descricao}>
+            <span className={`status-dot ${FONTE_DADOS.tipo === 'simulado' ? 'status-dot-sim' : ''}`} aria-hidden="true" />
+            {FONTE_DADOS.rotulo}
+          </span>
+        </div>
+      </div>
     </aside>
   );
 }

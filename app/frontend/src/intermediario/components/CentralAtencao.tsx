@@ -20,7 +20,7 @@ function itemDaCentral(i: ItemCentral): ItemAlerta {
       <>
         {valor && <span className="meta-line">{valor}</span>}
         <span className="meta-line">
-          {i.quando ? formatarDataHora(i.quando) : 'Condição ativa agora (início não registrado)'}
+          {i.quando ? formatarDataHora(i.quando) : 'Ativo agora'}
           {i.planta && <> · Planta: <Link to={ROTAS_INTER.planta(i.planta.id)}>{i.planta.nome}</Link></>}
           {i.dispositivo && <> · Dispositivo: {i.dispositivo}</>}
         </span>

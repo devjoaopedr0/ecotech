@@ -1,21 +1,41 @@
-.alert-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.alert-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .alert-item {
+  position: relative;
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
+  gap: 4px;
   font-size: 13.5px;
   color: var(--text-secondary);
-  padding: 10px 12px;
+  padding: 12px 14px 12px 16px;
   background: var(--bg-card-alt);
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-subtle);
+  overflow: hidden;
+  transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease;
 }
-.alert-item strong { color: var(--text-primary); }
-.alert-item-meta { display: block; margin-top: 4px; font-size: 12.5px; color: var(--text-muted); }
+.alert-item:hover { border-color: var(--border-strong); }
+/* Faixa lateral de severidade (reforça o selo; o texto do selo continua sendo a informação principal). */
+.alert-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--border-strong); }
+.alert-item-critico::before, .alert-item-abaixo::before { background: var(--status-abaixo-fg); }
+.alert-item-atencao::before { background: var(--status-atencao-fg); }
+.alert-item-info::before { background: var(--status-info-fg); }
+.alert-item-top { margin-bottom: 4px; }
+.alert-item-titulo { color: var(--text-primary); font-size: 14px; font-weight: 700; line-height: 1.35; }
+.alert-item-msg { margin: 0; line-height: 1.45; }
+.alert-item-meta { display: flex; flex-direction: column; gap: 3px; width: 100%; margin-top: 6px; font-size: 12.5px; color: var(--text-muted); }
 .alert-item-meta a { color: var(--accent-blue); font-weight: 600; }
-
-@media (max-width: 560px) {
-  .alert-item { flex-wrap: wrap; }
-}
+.alert-item-meta a:hover { text-decoration: underline; }
 .alert-item-meta .meta-line { display: block; }
-.alert-item-meta .meta-action { color: var(--text-secondary); }
+/* "O que fazer": destacado como próxima ação. */
+.alert-item-meta .meta-action { order: -1; color: var(--text-primary); background: var(--water-tint); border-radius: var(--radius-xs); padding: 7px 10px; line-height: 1.45; }
+.alert-item-meta .meta-action strong { color: var(--accent-blue); }
+
+.alert-item-detalhes { width: 100%; margin-top: 4px; font-size: 12.5px; color: var(--text-muted); }
+.alert-item-detalhes summary { cursor: pointer; width: fit-content; font-weight: 600; color: var(--text-secondary); padding: 2px 0; list-style: none; display: inline-flex; align-items: center; gap: 6px; }
+.alert-item-detalhes summary::-webkit-details-marker { display: none; }
+.alert-item-detalhes summary::before { content: ''; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform var(--dur-fast) ease; }
+.alert-item-detalhes[open] summary::before { transform: rotate(45deg); }
+.alert-item-detalhes summary:hover { color: var(--text-primary); }
+.alert-item-detalhes > div { margin-top: 6px; padding: 8px 10px; border-radius: var(--radius-xs); background: var(--bg-input); font-family: var(--font-mono); font-size: 11.5px; line-height: 1.6; display: flex; flex-direction: column; gap: 2px; }
+.alert-item-detalhes .meta-line { display: block; }

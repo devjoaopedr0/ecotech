@@ -1,27 +1,26 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Card from '../../compartilhado/components/Card';
 import Header from '../../compartilhado/components/Header';
-import { BellIcon, ClockIcon, DropletIcon, HomeIcon, LeafIcon } from '../../compartilhado/components/icons';
+import MapaHorta from '../../compartilhado/components/MapaHorta';
+import { BellIcon, ClockIcon, DropletIcon, HomeIcon, LeafIcon, MapIcon } from '../../compartilhado/components/icons';
 import { ROTAS_INTER } from '../../routes/paths';
-import { AcoesRapidas, AtividadesRecentes, CentralAtencao, GraficoPrincipal, IrrigacaoResumo, MonitoramentoPlantas, RecomendacoesLista, ResumoInteligente, StatusDados } from '../components';
+import { AcoesRapidas, AtividadesRecentes, CentralAtencao, GraficoPrincipal, IrrigacaoResumo, RecomendacoesLista, ResumoInteligente, StatusDados } from '../components';
 import { useIntermediario } from '../useIntermediario';
 
 const LIMITE_CENTRAL = 4;
 const LIMITE_RECOMENDACOES = 3;
-const LIMITE_PLANTAS = 6;
 
 /**
- * Início da intermediária: acompanhamento diário da horta, em ordem de uso.
- *  1. Atualização dos dados e resumo (plantas monitoradas, umidade, sensores, irrigação)
- *  2. Ações rápidas
- *  3. Central de atenção e recomendações
- *  4. Plantas (semáforo, busca e filtros)
- *  5. Gráfico principal (um só, com planta e período)
- *  6. Irrigação e atividades recentes
- * Análises, comparações, múltiplos gráficos, histórico completo e configurações ficam na avançada.
+ * Início da intermediária, organizado em camadas:
+ *  1. Situação — atualização dos dados, Saúde da Horta (nota + indicadores) e atalhos
+ *  2. Onde está o problema — mapa da horta (por canteiro) com o painel da planta
+ *  3. Análise — evolução da umidade (um gráfico, com planta e período)
+ *  4. Decisão — central de atenção, recomendações, irrigação e atividades recentes
+ * A lista completa de plantas, com busca e filtros, fica em Plantas. Telemetria e dados brutos ficam na avançada.
  */
 export default function Inicio({ openMenu }: { openMenu?: () => void }) {
   const { central, recomendacoes, atividades } = useIntermediario();
+  const navigate = useNavigate();
 
   return (
     <>
@@ -31,28 +30,35 @@ export default function Inicio({ openMenu }: { openMenu?: () => void }) {
         <ResumoInteligente />
         <AcoesRapidas />
 
+        <div className="camada"><h2>Onde agir</h2><p>Toque em uma planta para ver os detalhes</p></div>
+        <Card
+          title="Mapa da horta"
+          subtitle="Quais plantas precisam de atenção, canteiro por canteiro?"
+          icon={<MapIcon width={18} height={18} />}
+          action={<Link className="link-btn" to={ROTAS_INTER.plantas}>Lista com filtros</Link>}
+        >
+          <MapaHorta modo="simples" onAbrir={(id) => navigate(ROTAS_INTER.planta(id))} rotuloAbrir="Abrir planta" />
+        </Card>
+
         <div className="inter-duo">
-          <Card title="Central de atenção" icon={<BellIcon width={18} height={18} />} action={<Link className="link-btn" to={ROTAS_INTER.alertas}>Ver todas</Link>}>
+          <Card title="Central de atenção" subtitle="O que aconteceu e o que fazer" icon={<BellIcon width={18} height={18} />} action={<Link className="link-btn" to={ROTAS_INTER.alertas}>Ver todas</Link>}>
             <CentralAtencao itens={central} limite={LIMITE_CENTRAL} />
           </Card>
-          <Card title="Recomendações" icon={<LeafIcon width={18} height={18} />}>
+          <Card title="Recomendações" subtitle="Próximos passos sugeridos pelos dados" icon={<LeafIcon width={18} height={18} />}>
             <RecomendacoesLista itens={recomendacoes} limite={LIMITE_RECOMENDACOES} />
           </Card>
         </div>
 
-        <Card title="Minhas plantas" icon={<LeafIcon width={18} height={18} />} action={<Link className="link-btn" to={ROTAS_INTER.plantas}>Ver todas</Link>}>
-          <MonitoramentoPlantas limite={LIMITE_PLANTAS} />
-        </Card>
-
-        <Card title="Evolução da umidade do solo" icon={<DropletIcon width={18} height={18} />}>
+        <div className="camada"><h2>Análise</h2><p>Tendência e histórico recente</p></div>
+        <Card title="Evolução da umidade do solo" subtitle="Como a umidade mudou no período?" icon={<DropletIcon width={18} height={18} />}>
           <GraficoPrincipal />
         </Card>
 
         <div className="inter-duo">
-          <Card title="Irrigação" icon={<DropletIcon width={18} height={18} />}>
+          <Card title="Irrigação" subtitle="Quando a horta foi irrigada?" icon={<DropletIcon width={18} height={18} />}>
             <IrrigacaoResumo />
           </Card>
-          <Card title="Atividades recentes" icon={<ClockIcon width={18} height={18} />}>
+          <Card title="Atividades recentes" subtitle="Últimos eventos registrados" icon={<ClockIcon width={18} height={18} />}>
             <AtividadesRecentes itens={atividades} />
           </Card>
         </div>

@@ -33,6 +33,8 @@
 .period-toggle { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
 .period-btn {
+  min-height: 36px;
+  transition: background var(--dur-fast) ease, color var(--dur-fast) ease, border-color var(--dur-fast) ease;
   padding: 8px 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-strong);
@@ -45,7 +47,7 @@
 
 .period-btn:hover { color: var(--text-primary); }
 
-.period-btn-active { background: var(--accent-blue-strong); border-color: var(--accent-blue-strong); color: #fff; }
+.period-btn-active, .period-btn-active:hover { background: var(--accent-blue-strong); border-color: var(--accent-blue-strong); color: #fff; }
 
 .period-btn-icon { display: flex; align-items: center; justify-content: center; }
 
@@ -161,12 +163,24 @@
   align-items: center;
   gap: 16px;
 }
+.vg-health-texto { min-width: 0; flex: 1; }
+.vg-health-critico { border-color: color-mix(in srgb, var(--status-abaixo-fg) 35%, var(--border-subtle)); background: linear-gradient(135deg, rgba(255, 107, 99, 0.08), transparent 55%), var(--bg-card); }
+.vg-health-atencao { border-color: color-mix(in srgb, var(--status-atencao-fg) 30%, var(--border-subtle)); }
+.vg-indice { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; margin-top: 12px; font-size: 12px; color: var(--text-muted); font-weight: 600; }
+.vg-indice-barra { height: 6px; border-radius: 999px; background: var(--bg-input); overflow: hidden; }
+.vg-indice-barra > div { height: 100%; border-radius: inherit; transition: width 0.9s var(--ease-out); }
+.vg-indice-boa { background: var(--status-ideal-fg); }
+.vg-indice-atencao { background: var(--status-atencao-fg); }
+.vg-indice-critica { background: var(--status-abaixo-fg); }
+.vg-indice strong { font-size: 15px; color: var(--text-primary); }
+.vg-indice small { font-size: 11px; color: var(--text-muted); }
 
 .vg-health-icon {
-  width: 54px;
-  height: 54px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   border: 2px solid var(--accent-green);
+  background: var(--status-ideal-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -174,11 +188,11 @@
   flex-shrink: 0;
 }
 
-.vg-health-icon-atencao { border-color: var(--status-atencao-fg); color: var(--status-atencao-fg); }
+.vg-health-icon-atencao { border-color: var(--status-atencao-fg); color: var(--status-atencao-fg); background: var(--status-atencao-bg); }
 
-.vg-health-icon-critico { border-color: var(--status-abaixo-fg); color: var(--status-abaixo-fg); }
+.vg-health-icon-critico { border-color: var(--status-abaixo-fg); color: var(--status-abaixo-fg); background: var(--status-abaixo-bg); }
 
-.vg-health-card h2 { margin: 0 0 2px; font-size: 18px; color: var(--text-primary); }
+.vg-health-card h2 { margin: 0 0 2px; font-size: 18px; letter-spacing: -0.01em; color: var(--text-primary); }
 
 .vg-health-card p { margin: 0; font-size: 13.5px; color: var(--text-secondary); }
 
@@ -220,9 +234,20 @@
 
 .api-hint { display: block; margin-top: 8px; font-size: 11.5px; color: var(--text-muted); }
 
+/* Com 6 cartões, a situação vira uma faixa inteira acima das métricas (evita cartões espremidos e texto quebrado). */
+@media (max-width: 1640px) {
+  .vg-top-row-6 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .vg-top-row-6 > .vg-health-card { grid-column: 1 / -1; }
+  .vg-top-row-6 .vg-health-texto { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 360px); column-gap: 28px; align-items: center; }
+  .vg-top-row-6 .vg-indice { grid-column: 2; grid-row: 1 / span 2; margin-top: 0; }
+}
+
 @media (max-width: 1200px) {
   .sensores-stats { grid-template-columns: 1fr 1fr; }
-  .vg-top-row, .vg-top-row-6 { grid-template-columns: 1fr 1fr 1fr; }
+  .vg-top-row { grid-template-columns: 1fr 1fr 1fr; }
+  .vg-top-row-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .vg-top-row-6 > .metrica { grid-column: span 2; }
+  .vg-top-row-6 > .metrica:nth-last-child(-n + 2) { grid-column: span 3; }
   .vg-top-row-3 { grid-template-columns: 1.4fr repeat(2, minmax(0, 1fr)); }
 }
 
@@ -230,17 +255,27 @@
   .info-grid { grid-template-columns: 1fr; }
   .vg-top-row, .vg-top-row-6 { grid-template-columns: 1fr 1fr; }
   .vg-health-card { grid-column: 1 / -1; }
-  .vg-top-row-6 .vg-mini-card:last-child { grid-column: 1 / -1; }
+  .vg-top-row-6 > .metrica, .vg-top-row-6 > .metrica:nth-last-child(-n + 2) { grid-column: auto; }
+  .vg-top-row-6 > .metrica:last-child { grid-column: 1 / -1; }
+  .vg-top-row-6 .vg-health-texto { display: block; }
+  .vg-top-row-6 .vg-indice { margin-top: 12px; }
   .vg-top-row-3 { grid-template-columns: 1fr 1fr; }
   .vg-mid-row, .vg-bottom-row { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 560px) {
-  .sensores-stats { grid-template-columns: 1fr; }
+  .sensores-stats { grid-template-columns: 1fr 1fr; gap: 10px; }
   .sensores-grid { grid-template-columns: 1fr; }
-  .vg-top-row, .vg-top-row-6 { grid-template-columns: 1fr; }
+  /* No celular as métricas ficam em 2 colunas (antes 1 por linha: página muito longa). */
+  .vg-top-row, .vg-top-row-6, .vg-top-row-3 { grid-template-columns: 1fr 1fr; gap: 10px; }
   .vg-top-row-6 .vg-mini-card:last-child { grid-column: auto; }
-  .vg-top-row-3 { grid-template-columns: 1fr; }
+  .vg-health-card { padding: 16px; gap: 12px; align-items: flex-start; }
+  .vg-health-icon { width: 40px; height: 40px; }
+  .vg-health-icon svg { width: 20px; height: 20px; }
+  .vg-health-card h2 { font-size: 16.5px; }
+}
+@media (max-width: 360px) {
+  .vg-top-row, .vg-top-row-6, .vg-top-row-3 { grid-template-columns: 1fr; }
 }
 
 /* ---- Complementos compartilhados ---- */
@@ -268,3 +303,4 @@ select.dropdown-trigger option { background: var(--bg-card); color: var(--text-p
 .sensor-item-aviso { display: flex; align-items: flex-start; gap: 8px; margin: 10px 0 0; font-size: 12.5px; color: var(--text-secondary); }
 .sensor-item-aviso svg { flex: none; margin-top: 2px; color: var(--status-abaixo-fg); }
 .diag-resumo { margin: 0 0 12px; font-size: 13.5px; color: var(--text-secondary); }
+.legend-faixa { width: 14px; height: 10px; border-radius: 3px; background: color-mix(in srgb, var(--status-ideal-fg) 22%, transparent); border: 1px solid color-mix(in srgb, var(--status-ideal-fg) 40%, transparent); display: inline-block; }

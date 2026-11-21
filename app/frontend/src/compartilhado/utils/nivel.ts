@@ -35,7 +35,7 @@ export const ehNivel = (v: unknown): v is NivelDashboard => NIVEIS.includes(v as
 
 /* ------------------------------------------------------------------ persistência (simulada, no navegador) */
 
-/** e-mail do usuário (minúsculas) -> nível. Guarda só o nível, nunca senha. Será substituído pelo perfil vindo do backend. */
+/** usuário (minúsculas) -> nível. Guarda só o nível, nunca senha. Será substituído pelo perfil vindo do backend. */
 const CHAVE_NIVEIS = 'ecotech-niveis';
 
 function lerNiveis(): Record<string, NivelDashboard> {

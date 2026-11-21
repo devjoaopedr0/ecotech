@@ -100,7 +100,10 @@ const coisas = (n: number) => (n === 1 ? '1 coisa' : `${n} coisas`);
 export function resumoBasico(totalPlantas: number, tarefas: Tarefa[]): ResumoBasico {
   if (totalPlantas === 0) return { nivel: 'atencao', titulo: 'Nenhuma planta cadastrada', texto: 'Peça ajuda para cadastrar as plantas da sua horta.' };
   const urgentes = tarefas.filter((t) => t.urgente).length;
-  if (urgentes > 0) return { nivel: 'critico', titulo: 'Sua horta precisa de você agora', texto: `${coisas(urgentes)} para fazer agora.` };
+  if (urgentes > 0) {
+    const resto = tarefas.length - urgentes;
+    return { nivel: 'critico', titulo: 'Sua horta precisa de você agora', texto: `${coisas(urgentes)} para fazer agora${resto > 0 ? ` e ${coisas(resto)} para hoje` : ''}.` };
+  }
   if (tarefas.length > 0) return { nivel: 'atencao', titulo: 'Sua horta está quase toda bem', texto: `${coisas(tarefas.length)} para conferir.` };
   return { nivel: 'ok', titulo: 'Está tudo bem com sua horta', texto: 'Nada para fazer agora.' };
 }
